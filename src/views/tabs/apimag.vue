@@ -11,12 +11,6 @@
         margin-right: 16px;
 
     }
-    .Construction-api{
-        filter: Alpha(Opacity=50);
-        background-color:#f8f8f9;
-        padding: 16px;
-        border: 1px solid #dddee1;
-    }
     .tab-content {
         background-color: #fff;
         border: 1px solid #dddee1;
@@ -26,14 +20,6 @@
         padding: 16px;
         overflow:hidden;
     }
-
-    div.left-api {
-        height: 45px;
-        padding: 8px;
-        border: 1px solid #dddee1;
-    }
-
-
 
     .left-api .left-api-col .col-method{
         border: 1px solid #dddee1;
@@ -63,10 +49,10 @@
 <template>
        <div class="tab-content">
            <!--顶部-->
-           <div class="version-info">
+           <div class="tab-content-center center-title">
                <Form ref="topAPI" :model="newClass" label-position="right" :label-width="100" :rules="ruleValidate" class="validate-hide">
                    <Row>
-                       <Col span="5" offset="1">
+                       <Col span="5">
                        <Form-item label="API版本">
                            <Select  placeholder="请选择" v-model="newClass.key" @on-change="selectVersions">
                                <Option  v-for="(item, index) in apiBases" :value="index" :key="index">{{item.versionName}}</Option>
@@ -78,13 +64,13 @@
                            <Button type="primary" @click="addClass">修改</Button>
                        </Col>
                            <!--版本名-->
-                       <Col span="4" offset="2">
+                       <Col span="4" offset="1">
                            <Form-item label="版本名" prop="versionName">
                                <Input   style="width: 200px" placeholder="V1.0" v-model="newClass.versionName"></Input>
                            </Form-item>
                        </Col>
                            <!--BasePath-->
-                       <Col span="4" offset="2">
+                       <Col span="4" offset="1">
                            <Form-item label="basePath" prop="basePath">
                                <Input   style="width: 200px" placeholder="/cmp/contact/api/v1"  v-model="newClass.basePath"></Input>
                            </Form-item>
@@ -92,45 +78,48 @@
                    </Row>
                </Form>
            </div>
-           <div class="Construction-api">
+           <div class="Construction-api" style="height: calc(100% - 76px);">
                <Row>
-                   <Col span="12" style=" height: 650px;width: 50%;overflow-y:auto;">
-                   <div class="addition-api">
-                       <a v-for="(api, index) in apiObjs" :key="api.id" @click="apiDetials(index)">
-                           <Row class-name="left-api" style=" margin-bottom: 10px;">
-                               <Col span="4"  class-name="left-api-col"><div class="col-method request-method">{{api.requestMethod}}</div></Col>
-                               <Col span="12"  class-name="left-api-col"><div class="col-method relative-path">{{api.uri}}</div></Col>
-                               <Col span="8" class-name="left-api-col"><div class="col-method address-book">{{api.summary}}</div></Col>
+                   <Col span="14" style="padding-right: 8px" class="tab-content-col">
+                   <div class="addition-api tab-content-left" style="overflow: auto;">
+                     <div v-for="(api, index) in apiObjs" :key="api.id" @click="apiDetials(index, $event)" style="margin-bottom: 5px;">
+                       <Card :padding=10>
+                           <Row class-name="left-api">
+                               <Col span="4"  class-name="left-api-col"><Tag style="width: 63px;" :color="tagColor(api.requestMethod)">{{api.requestMethod}}</Tag></Col>
+                               <Col span="12"  class-name="left-api-col"><b>{{api.uri}}</b></Col>
+                               <Col span="8" class-name="left-api-col"><Tag style="width: 100%;" type="border" :color="tagColor(api.requestMethod)">{{api.summary}}</Tag></Col>
                            </Row>
-                       </a>
+                       </Card>
+                     </div>
                        <div style="margin-top: 16px">
                          <Button type="primary" @click="addRow">添加API</Button>
                        </div>
                    </div>
                    </Col>
-                   <Col span="12" style="height: 650px; width: 50%; overflow-y:auto;">
-                     <div style="border-left: 2px solid #dddee1;padding-left: 16px; " class="validate-hide">
+                   <Col span="10" class="tab-content-col">
+                     <div class="validate-hide tab-content-left" style="overflow: auto;">
+                         <h3 style="margin-bottom: 16px">编辑</h3>
                          <Form ref="methodTop" :model="formTop" label-position="top" :rules="ruleValidate">
                              <Form-item label="uri" prop="uri">
-                                 <Input v-model="formTop.uri" style="width:200px;"></Input>
+                                 <Input v-model="formTop.uri"></Input>
                              </Form-item>
                              <Form-item label="请求方法" prop="requestMethod">
-                                 <Select v-model="formTop.requestMethod" placeholder="请选择" style="width:200px;">
+                                 <Select v-model="formTop.requestMethod" placeholder="请选择">
                                      <Option  v-for="item in requestMethod" :value="item.value" :key="item.value">{{ item.value }}</Option>
                                  </Select>
                              </Form-item>
                              <Form-item label="概述" prop="summary">
-                                 <Input v-model="formTop.summary" style="width:200px;"></Input>
+                                 <Input v-model="formTop.summary"></Input>
                              </Form-item>
                              <Form-item label="描述">
-                                 <Input v-model="formTop.description" type="textarea" :autosize="{minRows: 2,maxRows: 5}" placeholder="请输入..." style="width:200px;"></Input>
+                                 <Input v-model="formTop.description" type="textarea" :autosize="{minRows: 2,maxRows: 5}" placeholder="请输入..."></Input>
                              </Form-item>
                              <Form-item label="标签">
-                                 <Input v-model="formTop.tag" style="width:200px;"></Input>
+                                 <Input v-model="formTop.tag"></Input>
                              </Form-item>
                              <Button type="primary" style="float:right;" @click="addProp">新增参数</Button>
                              <Form-item label=" 参数">
-                                 <Table border :columns="columns1" :data="formTop.data1" style="margin-top: 20px;"></Table>
+                                 <Table :columns="columns1" :data="formTop.data1" style="margin-top: 20px;"></Table>
                              </Form-item>
                          </Form>
                          <Form ref="responseObjGenericType" :model="formTop" label-position="top" :rules="ruleValidate">
@@ -239,9 +228,12 @@
        </div>
 </template>
 <script>
+    import expandRow from './apiparam-expand.vue';
     export default {
+        components: {expandRow},
         data () {
             return {
+
                 isBase:false,
                 isArray:false,
                 isRefobj:false,
@@ -383,6 +375,17 @@
                     },
                 ],
                 columns1: [
+                  {
+                      type: 'expand',
+                      width: 50,
+                      render: (h, params) => {
+                          return h(expandRow, {
+                              props: {
+                                  row: params.row
+                              }
+                          })
+                      }
+                  },
                     {
                         title: '名称',
                         key: 'name'
@@ -396,25 +399,6 @@
                         key: 'description'
                     },
                     {
-                        title: '是否必须',
-                        key: 'isRequired',
-                        render: (h, params) => {
-                        if (this.formTop.data1[params.index].isRequired == '1') {
-                            return '是';
-                            } else{
-                              return '否';
-                              }
-                            }
-                    },
-                    {
-                        title: '类型',
-                        key: 'type'
-                    },
-                    {
-                        title: '格式',
-                        key: 'format'
-                    },
-                    {
                         title: '操作',
                         key: 'operation',
                         render: (h, params) => {
@@ -424,6 +408,9 @@
                                 props: {
                                     type:'primary',
                                     size: 'small'
+                                },
+                                style: {
+                                    marginRight: '5px'
                                 },
                                 on: {
                                     click: () => {
@@ -472,14 +459,24 @@
                 },
             }
         },
-        components : {
-        },
         props: ["getData"],
         created: function () {
             var prjId = this.getData();
             this.getEntityData(prjId);
         },
         methods: {
+          // 依据request method获取不同颜色
+          tagColor: function(rm) {
+            if (rm == 'PUT') {
+              return 'yellow';
+            } else if (rm == 'POST') {
+              return 'green';
+            } else if (rm == 'GET') {
+              return 'blue';
+            } else {
+              return 'red';
+            }
+          },
             //获取版本信息
             getEntityData (prjId) {
                 var api = '/codegen/api/v1/apibases/'+prjId+'/show';
@@ -522,7 +519,10 @@
                 });
             },
             //获取API详细信息
-            apiDetials(index){
+            apiDetials(index, event){
+              if (event != undefined) {
+                console.log(event.target);
+              }
 //                this.$refs['methodTop'].resetFields();
                 this.apiobjId=this.apiObjs[index].id;
                 this.formTop.uri= this.apiObjs[index].uri;
