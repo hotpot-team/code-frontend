@@ -1,0 +1,61 @@
+{
+  "type": "object",
+  "id": "urn:jsonschema:com:changan:code:entity:ProjectPO",
+  "properties": {
+    "componentList": {
+      "type": "datetime",
+      "$ref": "urn:jsonschema:java:lang:String"
+    },
+    "id": {
+      "type": "string",
+      "description": "id"
+    },
+    "createdAt": {
+      "type": "datetime",
+      "id": "urn:jsonschema:java:time:LocalDateTime",
+      "$ref": "urn:jsonschema:java:time:LocalDateTime",
+      "readonly": true,
+      "description": "创建时间"
+    },
+    "updatedAt": {
+      "type": "datetime",
+      "$ref": "urn:jsonschema:java:time:LocalDateTime",
+      "readonly": true,
+      "format": "yyyy-MM-dd",
+      "description": "更新时间"
+    },
+    "delFlag": {
+      "type": "string",
+      "readonly": true,
+      "description": "删除标识"
+    },
+    "name": {
+      "type": "string",
+      "required": true,
+      "description": "项目名称"
+    },
+    "packages": {
+      "type": "select",
+      "required": true,
+      "description": "项目包名"
+    },
+    "components": {
+      "type": "string",
+      "description": "项目组件"
+    },
+    "description": {
+      "type": "string",
+      "description": "项目描述"
+    },
+    "datasources": {
+      "type": "array",
+      "$ref": "urn:jsonschema:com:changan:code:entity:DatasourcePO",
+      "description": "数据源列表",
+      "links": [
+        {
+          "href": "/codegen/api/v1/datasources"
+        }
+      ]
+    }
+  }
+}

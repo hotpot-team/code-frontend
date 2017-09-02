@@ -1,0 +1,10 @@
+{
+    /*上面两个 es3 和 es5 已过时，接下来的版本不再支持，
+    使用以下三个标签代替,*/
+    /*ECMAScript 3 的规范，保证兼容老的浏览器*/
+    "esversion":3,
+    /*ECMAScript 5.1 的规范*/
+    "esversion":5,
+     /*ECMAScript 6 的规范，注意浏览器支不支持ES6*/
+    "esversion":6
+}
