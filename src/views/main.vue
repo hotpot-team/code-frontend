@@ -27,6 +27,7 @@
         width: 100%;
         height: calc(100% - 86px);
         padding: 16px;
+        position: relative;
     }
 
     .layout-copy{
@@ -91,6 +92,8 @@
                     <component v-bind:is="tab.componentType" @child-addTab="addTab" :getData="someData"></component>
                 </Tab-pane>
             </Tabs>
+            <Button v-show="showX > 0" type="text" icon="chevron-left" style="position: absolute;top: 20px;left: 0px;z-index: 9999;width: 16px;padding: 0;" @click="leftTab"></Button>
+            <Button v-show="showX > 0" type="text" icon="chevron-right" style="position: absolute;top: 20px;right: 0px;z-index: 9999;width: 16px;padding: 0;" @click="rightTab"></Button>
         </div>
         <div class="layout-copy">
             2011-2016 &copy; TalkingData
@@ -107,10 +110,11 @@
     import ApiMag from './tabs/apimag.vue'
     import ConfMag from './tabs/confmag.vue'
     import EntiMag from './tabs/entimag.vue'
-    import ViewMag from './tabs/tabconfig.vue'
     export default {
         data() {
             return {
+                indexX: 0,
+                showX: 0,
                 acTab : 'pojMag',
                 tabList : [],
                 someData: ''
@@ -122,8 +126,7 @@
             'api-mag' : ApiMag,
             'conf-mag' : ConfMag,
             'enti-mag' : EntiMag,
-            'Loading' : Loading,
-            'view-mag' : ViewMag
+            'Loading' : Loading
         },
         computed: mapGetters(
             ['showLoading']
@@ -136,6 +139,18 @@
                         //切换标签时，传入对应标签的someData字段到this.someData,将由组件的getData属性获得并传入组件，一般传入的内容为组件发起页面内容初始化时，request请求所需的内容
                     }
                 }
+            },
+            tabList : function () {
+                console.log(1);
+                this.$nextTick(function () {
+                    let fw = document.getElementsByClassName('ivu-tabs-nav-scroll')[0].clientWidth;
+                    let cw = document.getElementsByClassName('ivu-tabs-nav')[0].clientWidth;
+                    if (cw > fw) {
+                        this.showX++;
+                    } else {
+                        this.showX = 0;
+                    }
+                });
             }
         },
         methods: {
@@ -160,6 +175,28 @@
                     this.tabList.push(data);
                 } else {
                     this.acTab = data.id;
+                }
+            },
+            leftTab() {
+                if (this.indexX > 0) {
+                    let obj = document.getElementsByClassName('ivu-tabs-nav')[0];
+                    let x = 0;
+                    this.indexX --;
+                    for (let i=0; i < this.indexX; i++) {
+                        x += document.getElementsByClassName('ivu-tabs-tab')[i].offsetWidth;
+                    }
+                    obj.style.webkitTransform="translate(-"+x+"px)";
+                }
+            },
+            rightTab() {
+                if (this.indexX < this.showX) {
+                    let obj = document.getElementsByClassName('ivu-tabs-nav')[0];
+                    let x = 0;
+                    this.indexX ++;
+                    for (let i=0; i < this.indexX; i++) {
+                        x += document.getElementsByClassName('ivu-tabs-tab')[i].offsetWidth;
+                    }
+                    obj.style.webkitTransform="translate(-"+x+"px)";
                 }
             }
         }

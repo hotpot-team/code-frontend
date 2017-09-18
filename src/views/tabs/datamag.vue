@@ -91,7 +91,7 @@
                     </div>
                 </div>
             </Col>
-            <Col span="20"  class="tab-content-col" style="padding-left: 8px;">
+            <Col span="16"  class="tab-content-col" style="padding-right: 8px;">
                 <div class="tab-content-block">
                     <Card :bordered="false" style="background: #f5f7f9" dis-hover>
                         <div slot="title">
@@ -102,8 +102,35 @@
                                 <Button type="primary" @click="inAutoCrud">停止CRUD API</Button>
                             </div>
                         </div>
-                        <Table :data="displayData.dbData" :columns="tableColumns1" @on-selection-change="selectRows" stripe ></Table>
+                        <Table
+                        :data="displayData.dbData"
+                        :columns="tableColumns1"
+                        @on-selection-change="selectRows"
+                        @on-current-change="clickRow"
+                        highlight-row
+                        stripe >
+                        </Table>
+                        <div style="margin: 10px;overflow: hidden">
+                            <div style="float: right;">
+                                <Page ref="pages" :total="totalNum" :page-size="pageSize" :current="currentPage" @on-change="changePage" show-total placement="top"></Page>
+                            </div>
+                        </div>
                     </Card>
+                </div>
+            </Col>
+            <Col span="4"  class="tab-content-col">
+                <div class="tab-content-block">
+                    <Form>
+                        <div style="border-bottom:1px solid #e3e8ee;padding-bottom: 8px;margin-bottom: 3px">
+                            <h3>编辑 {{rightForm.name}}</h3>
+                        </div>
+                        <Form-item label="描述">
+                            <Input v-model="rightForm.comments.comments" type="textarea" :rows="4" placeholder="描述"></Input>
+                        </Form-item>
+                        <Form-item>
+                            <Button type="primary" @click="cmtTabEdit">提交</Button>
+                        </Form-item>
+                    </Form>
                 </div>
             </Col>
         </Row>
@@ -113,8 +140,15 @@
     export default {
         data () {
             return {
+                totalNum : 0,//总条数
+                currentPage : 1, //当前页
+                pageSize: 10,
                 tabRows: [],
-                dbIndex: '',
+                dbIndex: '0',
+                rightForm: {
+                    id: '',
+                    comments: ''
+                },
                 displayData: {
                     dbName: '',
                     dbData: [],
@@ -130,7 +164,7 @@
                     pageParms: {
                         autoRecordCount: true,
                         pageIndex: 0,
-                        pageSize: 5,
+                        pageSize: 0,
                         recordCount: 0
                     }
                 },
@@ -181,23 +215,13 @@
                                         }
                                     }
                                 }, '配置表'),
-                                // h('Button', {
-                                //     props: {
-                                //         size: 'small'
-                                //     },
-                                //     on: {
-                                //         click: () => {
-                                //             this.show(params.index)
-                                //         }
-                                //     }
-                                // }, '自动创建CRUD API'),
                                 h('Button', {
                                     props: {
                                         size: 'small'
                                     },
                                     on: {
                                         click: () => {
-                                            this.show(params.index)
+                                            this.getCode(params.row)
                                         }
                                     }
                                 }, '生成实体代码并下载')
@@ -213,18 +237,62 @@
         },
         props: ["getData"],
         methods: {
+            changePage (curPage) {
+                this.currentPage = curPage
+                this.param.pageParms.pageIndex = curPage - 1;
+                this.editEn (this.dbIndex)
+                this.rightForm = {
+                    id: '',
+                    name: '',
+                    comments: {
+                        comments: ''
+                    }
+                }
+                //console.log(this.currentPage)
+            },
             menuSelected (name) {
+                var dbIndex
+                var _this = this
                 for (let i = 0; i < this.menus.length; i++){
                     if (name === this.menus[i].id) {
-                        this.dbIndex = i
+                        dbIndex = i
                         break
                     }
                 }
-                console.log(this.dbIndex)
+                this.dbIndex = dbIndex
+                this.changePage(1)
             },
             selectRows (rows) {
                 this.tabRows = rows
-                console.log(this.tabRows)
+                //console.log(this.tabRows)
+            },
+            clickRow (row) {
+                this.rightForm = {
+                    id: row.id,
+                    name: row.name,
+                    comments: {
+                        comments: row.comments
+                    }
+                }
+                //console.log(row)
+            },
+            cmtTabEdit () {
+                var _this = this
+                if (this.rightForm.id !=''){
+                    this.axios({
+                        method: 'put',
+                        url: '/codegen/api/v1/tables/' + this.rightForm.id + '/save',
+                        data: this.rightForm.comments,
+                        showLoading : true
+                    }).then((response) => {
+                    //this.$http.put('/codegen/api/v1/tables/' + this.rightForm.id + '/save', this.rightForm.comments).then((response)=>{
+                        _this.editEn(_this.dbIndex)
+                        _this.$Message.success('提交成功')
+                    });
+                } else {
+                    _this.$Message.error('请选择表')
+                }
+
             },
             autoCrud () {
                 var _this = this
@@ -245,8 +313,16 @@
                 }else {
                     alert('请选择未激活crud api的表项')
                 }
-                this.$http.put('/codegen/api/v1/tables/autocrud/change/active', tabIds).then((response)=>{
+                //console.log(tabIds)
+                this.axios({
+                    method: 'put',
+                    url: '/codegen/api/v1/tables/autocrud/change/active',
+                    data: tabIds,
+                    showLoading : true
+                }).then((response) => {
+                //this.$http.put('/codegen/api/v1/tables/autocrud/change/active', tabIds).then((response)=>{
                     _this.editEn(_this.dbIndex)
+                    _this.$Message.success('crud api激活成功')
                 });
                 //console.log('haha')
             },
@@ -269,32 +345,54 @@
                 } else {
                     alert('请选择已激活crud api的表项')
                 }
-                this.$http.put('/codegen/api/v1/tables/autocrud/change/inactive', tabIds).then((response)=>{
+                this.axios({
+                    method: 'put',
+                    url: '/codegen/api/v1/tables/autocrud/change/inactive',
+                    data: tabIds,
+                    showLoading : true
+                }).then((response) => {
+                //this.$http.put('/codegen/api/v1/tables/autocrud/change/inactive', tabIds).then((response)=>{
                     _this.editEn(_this.dbIndex)
+                    _this.$Message.info('crud api已停止')
                 });
             },
             //同步数据库
             syncDB: function () {
-                this.$http.get('/codegen/api/v1/datasources/'+this.displayData.id+'/tables/sync').then((response)=>{
+                this.axios({
+                    method: 'get',
+                    url: '/codegen/api/v1/datasources/' + this.displayData.id + '/tables/sync',
+                    data: '',
+                    showLoading : true
+                }).then((response) => {
+                //this.$http.get('/codegen/api/v1/datasources/'+this.displayData.id+'/tables/sync').then((response)=>{
                     if (response.data.statusCode == '200') {
+                        console.log(response.data)
                         this.$http.post('/codegen/api/v1/datasources/' + this.displayData.id + '/tables',this.param).then((response) => {
                             this.displayData.dbData = response.data.data;
+                            this.totalNum = response.data.totalElements;
+                            this.changePage(1)
+                            this.$Message.success('同步成功')
                         });
                     }
                 });
             },
             //menu选中
             editEn (index) {
+                const _this = this
                 this.displayData.dbName = this.menus[index].name;
                 this.displayData.id = this.menus[index].id;
+                this.param.pageParms.pageSize = this.pageSize;
                 this.$http.post('/codegen/api/v1/datasources/' + this.menus[index].id + '/tables',this.param).then((response) => {
                     this.displayData.dbData = response.data.data;
+                    _this.totalNum = response.data.totalElements;
+                    //console.log(response.data)
                 });
             },
             getEntityData (prjId) {
                 var _this = this;
                 this.$http.get('/codegen/api/v1/projects/' + prjId + '/show').then((response) => {
                     _this.menus = response.data.project.datasources;
+                    //console.log(response.data)
                     if (_this.menus.length > 0) {
                         _this.activeName = _this.menus[0].id;
                         _this.$nextTick(()=>{
@@ -330,6 +428,26 @@
                         }
                     },
                 });
+            },
+            getCode (data) {
+                this.axios({
+                    method: 'get',
+                    url: '/codegen/api/v1/tables/' + data.id + '/generate/code',
+                    data: '',
+                    showLoading : true
+                }).then((response) => {
+                    console.log(response)
+                    if (response.data.statusCode === '200') {
+                        let id = data.id
+                        var a = document.createElement('a');
+                        var url = global.host + '/codegen/api/v1/tables/download?tableId=' + id;
+                        a.href = url;
+                        a.click();
+                    } else {
+                        this.$Message.error('代码生成失败')
+                    }
+                })
+                //console.log(data)
             },
             remove (index) {
                 this.displayData.dbData.splice(index, 1);

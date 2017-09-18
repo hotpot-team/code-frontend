@@ -11,7 +11,6 @@ import 'iview/dist/styles/iview.css';
 import stores from './store/store.js';
 
 import VueTable from './template/vueTable.vue';
-
 import TextEdit from './template/textEdit.vue';
 
 Vue.use(VueRouter);
@@ -43,6 +42,7 @@ this.$http = axios;
 axios.interceptors.request.use(function(config){
     config.url = Util.ajaxUrl + config.url;
     if (config.showLoading) {
+        config.timeout = 20000;
         stores.dispatch('showloader');
     }
     return config;
@@ -52,11 +52,17 @@ axios.interceptors.request.use(function(config){
 });
 //请求后
 axios.interceptors.response.use(function(response){
-    stores.dispatch('hideloader');
+    if (stores.getters.showLoading) {
+        stores.dispatch('hideloader');
+        //iView.Message.success('提交成功!');
+    }
     //提示请求成功
     return response;
 },function(err){
-    stores.dispatch('hideloader');
+    if (stores.getters.showLoading) {
+        stores.dispatch('hideloader');
+        iView.Message.error('请求失败!');
+    }
     return Promise.reject(err);
 });
 

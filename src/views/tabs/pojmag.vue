@@ -78,8 +78,8 @@
                     <Form-item label="项目包名" prop="packages">
                         <Input v-model="formTop.packages" placeholder="com.changan.demo"></Input>
                     </Form-item>
-                    <Form-item label="备注">
-                        <Input v-model="formTop.description" type="textarea" :autosize="{minRows: 4,maxRows: 4}" placeholder="备注"></Input>
+                    <Form-item label="标题">
+                        <Input v-model="formTop.description" placeholder="请输入标题"></Input>
                     </Form-item>
                 </Form>
                 <Form ref="addform" :model="formDb" :rules="ruleValidate"  label-position="top" v-show="stepCurrent == 1" class="validate-hide">
@@ -121,30 +121,20 @@
                     <Table :columns="dbColumns" :data="formTop.datasources" border v-show="formTop.datasources.length > 0"></Table>
                 </Form>
                 <Form ref="form3" :model="formTop" :rules="ruleValidate" label-position="top" v-show="stepCurrent == 2">
-                    <Row>
-                        <Col span="11">
-                        <Card dis-hover>
-                            <p slot="title">安全设置</p>
-                            <Form-item prop="securityConfig">
-                                <Radio-group v-model="formTop.securityConfig" vertical>
-                                    <Radio label="0" true-value="0">基本Spring Security配置</Radio>
-                                    <Radio label="1" true-value="1">Spring Security + 资源中心认证</Radio>
-                                    <Radio label="2" true-value="2">Spring Security + 长安客户认证中心（CAC）认证</Radio>
-                                </Radio-group>
-                            </Form-item>
-                        </Card>
-                        </Col>
-                        <Col span="11" offset="2">
-                        <Card dis-hover>
-                            <p slot="title">组件设置</p>
-                            <Form-item prop="comConfig">
-                                <Checkbox-group v-model="formTop.components2">
-                                    <Checkbox label="1" true-value="1">资源中心权限管理组件</Checkbox>
-                                </Checkbox-group>
-                            </Form-item>
-                        </Card>
-                        </Col>
-                    </Row>
+                    <div v-if="categories.length > 0" v-for="item in categories" :key="item.category" style="margin: 8px">
+                        <Form-item :label="item.category" prop="componentMap">
+                            <CheckboxGroup v-if="item.isMultiSelect == 1" v-model="formTop.componentMap[item.category]">
+                                <Checkbox :label="check.code" v-for="check in item.components" :key="check.code">
+                                    {{check.cname}}
+                                </Checkbox>
+                            </CheckboxGroup>
+                            <RadioGroup v-if="item.isMultiSelect == 0" v-model="formTop.componentMap[item.category]">
+                                <Radio :label="check.code" v-for="check in item.components" :key="check.code">
+                                    {{check.cname}}
+                                </Radio>
+                            </RadioGroup>
+                        </Form-item>
+                    </div>
                 </Form>
             </div>
             <div slot="footer">
@@ -187,6 +177,7 @@
                 stepCurrent : 0,
                 addModal : false,
                 tableData1: [],
+                categories : [],
                 formDb: {
                     dbpassword: '',
                     dbtype: '',
@@ -196,8 +187,9 @@
                 },
                 formTop: {
                     id : '',
-                    components2: [],
+                    components: '',
                     datasources: [],
+                    componentMap: {},
                     description: '',
                     name: '',
                     packages: '',
@@ -262,22 +254,27 @@
                     {
                         title: '项目名',
                         key:'name',
-                        width:"15%"
+                        width:"12%"
+                    },
+                    {
+                        title: '标题',
+                        key:'description',
+                        width:"12%"
                     },
                     {
                         title: '包路径',
                         key: 'packages',
-                        width:"20%"
+                        width:"16%"
                     },
                     {
                         title: '创建时间',
                         key: 'createdAt',
-                        width:"18%"
+                        width:"16%"
                     },
                     {
                         title: '更新时间',
                         key: 'updatedAt',
-                        width:"18%"
+                        width:"16%"
                     },
                     {
                         title: '操作',
@@ -371,17 +368,7 @@
                                         }
                                     }
                                 },'生成前端代码并下载')])]),
-                                ]),
-                                // h('Button', {
-                                //     props: {
-                                //         size: 'small'
-                                //     },
-                                //     on: {
-                                //         click: () => {
-                                //             this.addTab(params, 'view-mag')
-                                //         }
-                                //     }
-                                // }, '页面配置'),
+                                ])
                             ]);
                         }
                     }
@@ -390,13 +377,42 @@
         },
         created: function () {
             this.getTableData(1);
+            this.getComponents();
         },
         methods: {
             //生成后端代码
             genBackCo (prjId) {
-                console.log(prjId)
-                this.$http.get('/codegen/api/v1/projects/'+ prjId +'/generate/code').then((response) => {
-                    window.open(global.host + response.data.msgData)
+                this.axios({
+                    method: 'get',
+                    url: '/codegen/api/v1/projects/'+ prjId +'/generate/code',
+                    data: '',
+                    showLoading : true
+                }).then((response) => {
+                    console.log(response)
+                    if (response.status === 200) {
+                        var a = document.createElement('a');
+                        var url = global.host + response.data.msgData;
+                        var filename = 'myfile.zip';
+                        a.href = url;
+                        a.download = filename;
+                        a.click();
+                    } else {
+                        this.$Message.error('代码生成失败')
+                    }
+                });
+            },
+            getComponents() {
+                this.$http.get('/codegen/api/v1/projects/components/default').then((response)=>{
+                    this.categories = response.data.categories;
+                    var componentsMap={};
+                    for (let i = 0; i < this.categories.length; i++) {
+                        if (this.categories[i].isMultiSelect == 1) {
+                            componentsMap[this.categories[i].category] = [];
+                        } else {
+                            componentsMap[this.categories[i].category] = '';
+                        }
+                    }
+                    this.formTop.componentsMap = Object.assign({}, this.formTop.componentsMap, componentsMap);
                 });
             },
             //生成前端代码
@@ -428,8 +444,9 @@
                     this.formTop.packages = response.data.project.packages;
                     this.formTop.description = response.data.project.description;
                     this.formTop.securityConfig = response.data.project.securityConfig;
-                    //this.formTop.components = response.data.project.components.split(",");
+                    this.formTop.components = response.data.project.components;
                     this.formTop.id = response.data.project.id;
+                    this.formTop.componentMap = Object.assign({}, this.formTop.componentsMap, response.data.project.componentsMap);
                 });
                 this.addModal = true;
             },
@@ -491,6 +508,7 @@
                 this.formTop.datasources = [];
                 this.stepCurrent = 0;
                 this.addModal = false;
+                this.formTop.componentMap = {};
             },
             prevStep() {
                 if (this.stepCurrent > 0) {
@@ -501,6 +519,12 @@
                 if (this.stepCurrent == 2) {
                     this.stepCurrent = 0;
                     this.addModal = false;
+                    let components = '';
+                    for (let key in this.formTop.componentMap) {
+                        components += this.formTop.componentMap[key].toString() + ',';
+                    }
+                    components = components.substr(0, components.length - 1);
+                    this.formTop.components = components;
                     //添加
                     this.axios({
                         method: 'post',

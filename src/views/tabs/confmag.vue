@@ -41,10 +41,10 @@
             </Col>
             <Col span="6" style="height:100%">
                 <div class="tab-conf-content-block" style="margin:0 10px">
-                    <Form>
-                        <Form-item>
+                    <Form ref="formvalid" :rules="formRule" :model="formDispaly">
+                        <div style="border-bottom:1px solid #e3e8ee;padding-bottom: 8px;margin-bottom: 5px">
                             <h3>编辑 {{formDispaly.name}} 字段</h3>
-                        </Form-item>
+                        </div>
                         <!-- <Form-item label="实体属性类型">
                             <Select v-model="formDispaly.javaType" style="width:200px" @on-change="chJavaType">
                                 <Option v-for="item in propList" :value="item.value" :key="item.value">{{ item.label }}</Option>
@@ -62,13 +62,13 @@
                                 <Radio label="0">否</Radio>
                             </Radio-group>
                         </Form-item>
-                        <!-- <Form-item label="字段描述">
-                            <Input type="textarea" v-model="formDispaly.comments" ></Input>
-                        </Form-item> -->
-                        <Form-item :label="isString?'最小长度':'最小值'">
-                            <Input v-model="formDispaly.min" ></Input>
+                        <Form-item label="字段描述">
+                            <Input v-model="formDispaly.comments" ></Input>
                         </Form-item>
-                        <Form-item :label="isString?'最大长度':'最大值'">
+                        <Form-item :label="isString?'最小长度':'最小值'" prop="min" v-show="formDispaly.javaType !== 'Date'">
+                            <Input v-model="formDispaly.min"></Input>
+                        </Form-item>
+                        <Form-item :label="isString?'最大长度':'最大值'" prop="max" v-show="formDispaly.javaType !== 'Date'">
                             <Input v-model="formDispaly.max"></Input>
                         </Form-item>
                         <Form-item :label="isString?'正则表达式':''">
@@ -93,6 +93,14 @@
     export default {
         data () {
             return {
+                formRule: {
+                    min: [
+                        {pattern:/^\d*$/, message: '只能为数字', trigger: 'change'}
+                    ],
+                    max: [
+                        {pattern:/^\d*$/, message: '只能为数字', trigger: 'change'}
+                    ]
+                },
                 propList: [
                     {
                         value: "String",
@@ -109,7 +117,7 @@
                 ],
                 formDispaly: {
                     name: '',
-                    //comments: '',
+                    comments: '',
                     isNullable: '',
                     //javaType: '',
                     readOnly: '',
@@ -147,10 +155,26 @@
                     {
                         title: '是否为空',
                         key: 'isNullable',
+                        render: (h, params) => {
+                            if (params.row.isNullable === '0') {
+                                return '否'
+                            } else if (params.row.isNullable === '1') {
+                                return '是'
+                            }
+                            //console.log(params)
+                        }
                     },
                     {
                         title: '是否只读',
                         key: 'readOnly',
+                        render: (h, params) => {
+                            if (params.row.readOnly === '0') {
+                                return '否'
+                            } else if (params.row.readOnly === '1') {
+                                return '是'
+                            }
+                            //console.log(params)
+                        }
                     },
                 ]
             }
@@ -174,38 +198,59 @@
                 var index
                 var _this = this
                 disData = this.formDispaly
-                for (let i = 0; i < this.tableData1.length; i++) {
-                    if ( disData.name === this.tableData1[i].name){
-                        index = i
-                    }
-                }
-                //console.log(index)
-                commitData = this.tableData1[index]
-                commitData.isNullable = disData.isNullable
-                commitData.readOnly = disData.readOnly
-                //commitData.javaType = disData.javaType
-                //commitData.comments = disData.comments
-                commitData.tableId = this.getData() //在请求参数中加入tableId
-                if ( this.isString === true ) {
-                    commitData.min = disData.min
-                    commitData.max = disData.max
-                    commitData.pattern = disData.pattern
+                if (disData.name === '') {
+                    this.$Message.error('请选择字段')
                 } else {
+                    for (let i = 0; i < this.tableData1.length; i++) {
+                        if ( disData.name === this.tableData1[i].name){
+                            index = i
+                        }
+                    }
+                    console.log(disData)
+                    commitData = this.tableData1[index]
+                    //console.log(commitData)
+                    commitData.isNullable = disData.isNullable
+                    commitData.readOnly = disData.readOnly
+                    //commitData.javaType = disData.javaType
+                    commitData.comments = disData.comments
+                    commitData.tableId = this.getData() //在请求参数中加入tableId
                     commitData.min = disData.min
                     commitData.max = disData.max
-                }
-                for (var i in commitData) {
-                    var value = commitData[i];
-                    if (value === null) {
-                        delete commitData[i];
+                    if ( this.isString === true ) {
+                        commitData.pattern = disData.pattern
+                    } else {
+                        commitData.pattern = ''
                     }
-                }
+                    for (var i in commitData) {
+                        var value = commitData[i];
+                        if (value === null) {
+                            delete commitData[i];
+                        }
+                    }
                 //var commitJson = JSON.stringify(commitData)
-                console.log(commitData)
-                this.$http.post('/codegen/api/v1/column/save',commitData).then((response)=>{
-                    console.log(response);
-                    _this.mockTableData1()
-                });
+                    console.log(typeof(commitData.min))
+                    if (commitData.max !== null && commitData.max !== '' && commitData.max < commitData.min){
+                        this.$Message.error('最小值大于最大值')
+                    } else {
+                        this.$refs['formvalid'].validate((valid) => {
+                            if (valid){
+                                this.axios({
+                                    method: 'post',
+                                    url: '/codegen/api/v1/column/save',
+                                    data: commitData,
+                                    showLoading : true
+                                }).then((response) => {
+                                    _this.mockTableData1()
+                                    _this.$Message.success('提交成功')
+                                });
+                            } else {
+                                this.$Message.error('请正确填写表单')
+                            }
+                        })
+                    }
+
+                }
+
             },
 
             rowSelect (curr,pre) {
@@ -214,17 +259,15 @@
                 data.name = curr.name
                 data.isNullable = curr.isNullable
                 data.readOnly = curr.readOnly
-                //data.javaType = curr.javaType
-                //data.comments = curr.comments
+                data.javaType = curr.javaType
+                data.min = curr.min
+                data.max = curr.max
+                data.pattern = curr.pattern
+                data.comments = curr.comments
                 if (curr.javaType === "String") {
                     this.isString = true
-                    data.min = curr.min
-                    data.max = curr.max
-                    data.pattern = curr.pattern
                 } else {
                     this.isString = false
-                    data.min = curr.min
-                    data.max = curr.max
                 }
                 this.formDispaly = data
             },
@@ -234,35 +277,6 @@
                     this.tableData1 = response.data.columns;
                 });
             },
-            // deleteEmptyProperty(object){
-            //     for (var i in object) {
-            //         var value = object[i];
-            //         // sodino.com
-            //         // console.log('typeof object[' + i + ']', (typeof value));
-            //         if (typeof value === 'object') {
-            //             if (Array.isArray(value)) {
-            //                 if (value.length == 0) {
-            //                     delete object[i];
-            //                     console.log('delete Array', i);
-            //                     continue;
-            //                 }
-            //             }
-            //             deleteEmptyProperty(value);
-            //             if (isEmpty(value)) {
-            //                 console.log('isEmpty true', i, value);
-            //                 delete object[i];
-            //                 console.log('delete a empty object');
-            //             }
-            //         } else {
-            //             if (value === '' || value === null || value === undefined) {
-            //                 delete object[i];
-            //                 console.log('delete ', i);
-            //             } else {
-            //                 console.log('check ', i, value);
-            //             }
-            //         }
-            //     }
-            // }
         }
     }
 </script>

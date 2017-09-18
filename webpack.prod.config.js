@@ -1,3 +1,4 @@
+const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
@@ -12,6 +13,7 @@ fs.open('./src/config/env.js', 'w', function(err, fd) {
 
 module.exports = merge(webpackBaseConfig, {
     output: {
+		path: path.join(__dirname, './prod/dist'),
         publicPath: '/dist/',
         filename: '[name].[hash].js',
         chunkFilename: '[name].[hash].chunk.js'
@@ -36,7 +38,7 @@ module.exports = merge(webpackBaseConfig, {
             }
         }),
         new HtmlWebpackPlugin({
-            filename: '../index_prod.html',
+            filename: '../index.html',
             template: './src/template/index.ejs',
             inject: false
         })
