@@ -1,4 +1,4 @@
-<style>
+<style scoped>
     .tab-content {
         background-color: #fff;
         border: 1px solid #dddee1;
@@ -65,6 +65,38 @@
         right: 16px;
     }
 
+    .relation-row{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        margin: 8px 0;
+    }
+
+    .relation-info{
+        font-size: 14px;
+        font-weight: normal;
+    }
+    .relation-info span{
+        margin: 0 8px;
+        font-weight: bold;
+    }
+
+    .relation-row .relation-del{
+        margin: auto 0;
+        width: 35px;
+    }
+
+    .relation-row .relation-del:hover{
+        cursor: pointer;
+    }
+
+     .line{
+        height: 10px;
+        border-bottom: 1px solid #dddee1;
+        margin-left: -16px;
+        width: calc(100% + 32px);
+        display: inline-block;
+    }
 </style>
 <template>
     <div class="tab-content" style="overflow: hidden;position: relative">
@@ -91,7 +123,7 @@
                     </div>
                 </div>
             </Col>
-            <Col span="16"  class="tab-content-col" style="padding-right: 8px;">
+            <Col span="15"  class="tab-content-col" style="padding-right: 8px;">
                 <div class="tab-content-block">
                     <Card :bordered="false" style="background: #f5f7f9" dis-hover>
                         <div slot="title">
@@ -118,7 +150,7 @@
                     </Card>
                 </div>
             </Col>
-            <Col span="4"  class="tab-content-col">
+            <Col span="5"  class="tab-content-col">
                 <div class="tab-content-block">
                     <Form>
                         <div style="border-bottom:1px solid #e3e8ee;padding-bottom: 8px;margin-bottom: 3px">
@@ -131,15 +163,77 @@
                             <Button type="primary" @click="cmtTabEdit">提交</Button>
                         </Form-item>
                     </Form>
+                    <div v-if="rightForm.isAutoCrud == 1">
+                        <div class="line"></div>
+                        <div style="padding-bottom: 8px;margin-bottom: 3px;display: flex;flex-direction: row;justify-content: space-between">
+                            <h3 style="line-height: 32px;display: inline-block">resultFul关联</h3>
+                            <Button type="ghost" @click="handleAdd" icon="plus-round">新增restFul关联</Button>
+                        </div>
+                        <div v-for="(item, index) in tableRelations" :key="index" class="relation-row">
+                            <div>
+                                <div class="relation-info">{{rightForm.name}}<span>{{item.relation}}</span>{{item.slaveTableName}}</div>
+                                <div>{{rightForm.name}}.{{item.masterColumnName}}={{item.slaveTableName}}.{{item.slaveColumnName}}</div>
+                            </div>
+                            <div class="relation-del"  @click="delRelation(item.id, index)"><Icon type="close" style="color: #999"></Icon></div>
+                        </div>
+                    </div>
                 </div>
             </Col>
         </Row>
+        <Modal v-model="relModel"
+                title="关联<(￣3￣)> 表"
+                @on-ok="relationOk">
+            <Form :model="addRelation" label-position="left" :label-width="60" ref="relationForm">
+                <FormItem label="当前表：">
+                    {{rightForm.name}}</p>
+                </FormItem>
+                <FormItem label="关系：" prop="relation">
+                    <RadioGroup v-model="addRelation.relation">
+                        <Radio label="One to One" value="one_to_one"></Radio>
+                        <Radio label="One to Many" value="one_to_many"></Radio>
+                    </RadioGroup>
+                </FormItem>
+                <FormItem label="关联表：" prop="slaveTableId">
+                    <Select v-model="addRelation.slaveTableId" placeholder="请选择" @on-change="relTableChange">
+                        <Option v-for="(item, index) in displayData.dbData" :key="item.id" :label="item.name" :value="item.id"></Option>
+                    </Select>
+                </FormItem>
+                    <Row>
+                        <Col span="12">
+                            <FormItem label="关联字段：" prop="masterColumnName">
+                                <Select v-model="addRelation.masterColumnName" placeholder="主表字段">
+                                    <Option v-for="(item, index) in masterColumns" :key="index" :label="item.name" :value="item.name"></Option>
+                                </Select>
+                            </FormItem>
+                        </Col>
+                        <Col span="12">
+                            <FormItem prop="slaveColumnName">
+                                <span slot="label" style="text-align: center; display: inline-block;width: 100%">=</span>
+                                <Select v-model="addRelation.slaveColumnName"  placeholder="子表表字段">
+                                    <Option v-for="(item, index) in slaveColumns" :key="index" :label="item.name" :value="item.name"></Option>
+                                </Select>
+                            </FormItem>
+                        </Col>
+                    </Row>
+            </Form>
+        </Modal>
     </div>
 </template>
 <script>
     export default {
         data () {
             return {
+                relModel: false,
+                addRelation: {
+                    masterTableId: '',
+                    slaveTableId: '',
+                    relation: '',
+                    masterColumnName: '',
+                    slaveColumnName: ''
+                },
+                tableRelations: [],
+                masterColumns: [],
+                slaveColumns: [],
                 totalNum : 0,//总条数
                 currentPage : 1, //当前页
                 pageSize: 10,
@@ -147,7 +241,9 @@
                 dbIndex: '0',
                 rightForm: {
                     id: '',
-                    comments: ''
+                    comments: '',
+                    isAutoCrud: 0,
+                    relations: []
                 },
                 displayData: {
                     dbName: '',
@@ -237,6 +333,44 @@
         },
         props: ["getData"],
         methods: {
+            //删除关联关系
+            delRelation(id, index){
+                this.$http.delete('/codegen/api/v1/tables/relations/'+id+'/delete').then((response)=>{
+                    this.tableRelations.splice(index, 1);
+                });
+            },
+            //新增关联
+            relationOk(){
+                this.$http.put('/codegen/api/v1/tables/relations/save', this.addRelation).then((response)=>{
+                    if (response.data.statusCode == '200') {
+                        this.tableRelations.push(response.data.tableRelation);
+                    }
+                });
+            },
+            //获取当前表所有关联关系
+            getTableRelations(tableId){
+                this.$http.get('/codegen/api/v1/tables/'+tableId + '/relations').then((response)=>{
+                    this.tableRelations = response.data.tableRelations;
+                });
+            },
+            //打开新增关联CRUD Model
+            handleAdd(){
+                if (this.rightForm.id == null || this.rightForm.id == '') {
+                    this.$Message.error('请选择表');
+                    return;
+                }
+                this.$refs['relationForm'].resetFields();
+                this.$http.get('/codegen/api/v1/tables/'+this.rightForm.id+'/columns').then((response)=>{
+                    this.masterColumns = response.data.columns;
+                });
+                this.addRelation.masterTableId = this.rightForm.id;
+                this.relModel = true;
+            },
+            relTableChange(id){
+                this.$http.get('/codegen/api/v1/tables/'+id+'/columns').then((response)=>{
+                    this.slaveColumns = response.data.columns;
+                });
+            },
             changePage (curPage) {
                 this.currentPage = curPage
                 this.param.pageParms.pageIndex = curPage - 1;
@@ -248,7 +382,6 @@
                         comments: ''
                     }
                 }
-                //console.log(this.currentPage)
             },
             menuSelected (name) {
                 var dbIndex
@@ -270,9 +403,13 @@
                 this.rightForm = {
                     id: row.id,
                     name: row.name,
+                    isAutoCrud : row.isAutoCrud,
                     comments: {
                         comments: row.comments
                     }
+                }
+                if (row.isAutoCrud == 1) {
+                    this.getTableRelations(row.id);
                 }
                 //console.log(row)
             },
@@ -285,7 +422,6 @@
                         data: this.rightForm.comments,
                         showLoading : true
                     }).then((response) => {
-                    //this.$http.put('/codegen/api/v1/tables/' + this.rightForm.id + '/save', this.rightForm.comments).then((response)=>{
                         _this.editEn(_this.dbIndex)
                         _this.$Message.success('提交成功')
                     });
@@ -320,7 +456,6 @@
                     data: tabIds,
                     showLoading : true
                 }).then((response) => {
-                //this.$http.put('/codegen/api/v1/tables/autocrud/change/active', tabIds).then((response)=>{
                     _this.editEn(_this.dbIndex)
                     _this.$Message.success('crud api激活成功')
                 });
@@ -351,7 +486,6 @@
                     data: tabIds,
                     showLoading : true
                 }).then((response) => {
-                //this.$http.put('/codegen/api/v1/tables/autocrud/change/inactive', tabIds).then((response)=>{
                     _this.editEn(_this.dbIndex)
                     _this.$Message.info('crud api已停止')
                 });
@@ -364,7 +498,6 @@
                     data: '',
                     showLoading : true
                 }).then((response) => {
-                //this.$http.get('/codegen/api/v1/datasources/'+this.displayData.id+'/tables/sync').then((response)=>{
                     if (response.data.statusCode == '200') {
                         console.log(response.data)
                         this.$http.post('/codegen/api/v1/datasources/' + this.displayData.id + '/tables',this.param).then((response) => {
@@ -392,7 +525,6 @@
                 var _this = this;
                 this.$http.get('/codegen/api/v1/projects/' + prjId + '/show').then((response) => {
                     _this.menus = response.data.project.datasources;
-                    //console.log(response.data)
                     if (_this.menus.length > 0) {
                         _this.activeName = _this.menus[0].id;
                         _this.$nextTick(()=>{

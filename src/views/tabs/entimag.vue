@@ -101,6 +101,7 @@
 
     .tab-content .ivu-table-body {
         height: calc(100% - 40px);
+        overflow-x: hidden;
     }
 
     .ivu-menu-vertical .ivu-menu-item-group-title{
@@ -119,181 +120,184 @@
     <div class="tab-content">
         <Row>
             <Col span="4" class="tab-content-col" style="padding-right: 8px">
-                <div class="tab-content-left">
-                    <div class="left-menu">
-                        <Row class-name="search-menu">
-                            <Col span="24">
-                                <Input v-model="searchMenu" icon="search" placeholder="请输入..."><Button slot="prepend" icon="plus" @click="addDto"></Button></Input>
-                            </Col>
-                        </Row>
-                        <div style="position: absolute;left: 16px;bottom: 16px;top: 60px;right: 16px">
-                            <Menu ref="leftMenu" theme="light" @on-select="menuSelected" :active-name="activeMenu" width="auto">
-                                <Menu-group v-for="dtoList in menus" :key="dtoList.packName" :title="'dto.'+dtoList.packName" v-if="dtoList.packName != 'default'" >
-                                    <Menu-item v-show="searchMenu == '' || po.className.indexOf(searchMenu) > -1" v-for="dto in dtoList.data" :key="dto.id" :name="dto.id">
-                                        {{dto.className}}
-                                    </Menu-item>
-                                </Menu-group>
-                                <Menu-group v-for="poList in poMenus" :key="poList.packName" :title="'po.'+poList.packName">
-                                    <Menu-item v-show="searchMenu == '' || po.className.indexOf(searchMenu) > -1" v-for="po in poList.data" :key="po.id" :name="po.id">
-                                        {{po.className}}
-                                    </Menu-item>
-                                </Menu-group>
-                            </Menu>
-                        </div>
+            <div class="tab-content-left">
+                <div class="left-menu">
+                    <Row class-name="search-menu">
+                        <Col span="24">
+                        <Input v-model="searchMenu" icon="search" placeholder="请输入..."><Button slot="prepend" icon="plus" @click="addDto"></Button></Input>
+                        </Col>
+                    </Row>
+                    <div style="position: absolute;left: 16px;bottom: 16px;top: 60px;right: 16px">
+                        <Menu ref="leftMenu" theme="light" @on-select="menuSelected" :active-name="activeMenu" width="auto">
+                            <Menu-group v-for="dtoList in menus" :key="dtoList.packName" :title="'dto.'+dtoList.packName" >
+                                <Menu-item v-show="searchMenu == '' || dto.className.indexOf(searchMenu) > -1" v-for="dto in dtoList.data" :key="dto.id" :name="dto.id">
+                                    {{dto.className}}
+                                </Menu-item>
+                            </Menu-group>
+                            <Menu-group v-for="poList in poMenus" :key="poList.packName" :title="'po.'+poList.packName">
+                                <Menu-item v-show="searchMenu == '' || po.className.indexOf(searchMenu) > -1" v-for="po in poList.data" :key="po.id" :name="po.id">
+                                    {{po.className}}
+                                </Menu-item>
+                            </Menu-group>
+                        </Menu>
                     </div>
                 </div>
+            </div>
             </Col>
             <Col :span="isDto?14:20" class="tab-content-col" style="padding:0 8px;overflow: auto;">
-                <div class="tab-content-center center-title" v-if="isDto">
-                    <Form ref="centervalid" :model='centerForm' :rules='centerRule' inline :label-width="60">
-                        <Form-item label="class" prop="className">
-                            <Input type="text" v-model="centerForm.className" placeholder="class"></Input>
-                        </Form-item>
-                        <Form-item label="extends">
-                            <Select v-model="centerForm.inheritObjName" style="width: 190px">
-                                <div v-for="item in formatList.dto.data">
-                                    <Option v-for="(child,index) in item.data" :value="(item.packName == 'default'?'':item.packName + '.') +child.className" :key="index" ></Option>
-                                </div>
-                            </Select>
-                        </Form-item>
-                        <Form-item label="是否支持泛型" :label-width="100">
-                            <Radio-group v-model="centerForm.isGeneric">
-                                <Radio label="1">是</Radio>
-                                <Radio label="0">否</Radio>
-                            </Radio-group>
-                        </Form-item>
-                        <Form-item>
-                            <Button type="primary" @click="editDto">保存</Button>
-                            <Button type="error" @click="delDto">删除</Button>
-                        </Form-item>
-                    </Form>
-                </div>
-                <div :class="isDto?'tab-content-center center-content':'tab-content-left'" style="overflow: auto;">
-                    <div v-if="isDto">
-                        <h3 style="margin-top: 0">新增</h3>
-                        <div class="add-columns" >
-                            <Form ref="sigaddvalid" :model="newPropForm" :rules="sigAddRule" inline :label-width="60" >
-                                <Form-item label="属性名" prop="name">
-                                    <Input v-model="newPropForm.name" type="text" placeholder="属性名"></Input>
-                                </Form-item>
-                                <Form-item label="类型" prop="type" v-if="propTypeList.length > 0">
-                                    <Select v-model="newPropForm.type" style="width: 162px" @on-change="function() {newPropForm.format = ''}">
-                                        <Option v-for="item in propTypeList" :value="item.value" :key="item.value">{{ item.label }}</Option>
-                                    </Select>
-                                </Form-item>
-                                <Form-item label="格式" prop="format" v-if="propTypeList.length > 0">
-                                    <Select v-model="newPropForm.format"  v-show="newPropForm.type == 'base'" style="width: 162px">
-                                        <Option v-for="(item,index) in formatList.base.data" :value="item" :key="index" >{{ item }}</Option>
-                                    </Select>
-                                    <Select v-model="newPropForm.format" v-show="newPropForm.type == 'array'" style="width: 162px">
-                                        <Option-group label="基本类型">
-                                            <Option v-for="(item,index) in formatList.base.data" :value="'base.' + item" :key="index" >{{ item }}</Option>
-                                        </Option-group>
-                                        <Option-group label="DTO实体">
-                                            <div v-for="item in formatList.dto.data">
-                                                <Option v-for="(child,index) in item.data" :value="'dto.' + (item.packName == 'default'?'':item.packName + '.') + child.className" :key="index" >
-                                                    {{(item.packName == 'default'?'':item.packName + '.') +child.className}}
-                                                </Option>
-                                            </div>
-                                        </Option-group>
-                                        <Option-group label="PO实体">
-                                            <div v-for="item in formatList.po.data">
-                                                <Option v-for="(child,index) in item.data" :value="'po.' + item.packName + '.' +child.className" :key="index" >
-                                                    {{item.packName + '.' +child.className}}
-                                                </Option>
-                                            </div>
-                                        </Option-group>
-                                    </Select>
-                                    <Select v-model="newPropForm.format" v-show="newPropForm.type == 'dto'" style="width: 162px">
+            <div class="tab-content-center center-title" v-if="isDto">
+                <Form ref="centervalid" :model='centerForm' :rules='centerRule' inline :label-width="60">
+                    <Form-item label="class" prop="className">
+                        <Input type="text" v-model="centerForm.className" placeholder="class"></Input>
+                    </Form-item>
+                    <Form-item label="extends">
+                        <Select v-model="centerForm.inheritObjName" style="width: 190px">
+                            <div v-for="item in formatList.dto.data">
+                                <Option v-for="(child,index) in item.data" :value="(item.packName == 'default'?'':item.packName + '.') +child.className" :key="index" ></Option>
+                            </div>
+                        </Select>
+                    </Form-item>
+                    <Form-item label="是否支持泛型" :label-width="100">
+                        <Radio-group v-model="centerForm.isGeneric">
+                            <Radio label="1">是</Radio>
+                            <Radio label="0">否</Radio>
+                        </Radio-group>
+                    </Form-item>
+                    <Form-item>
+                        <Button type="primary" @click="editDto">保存</Button>
+                        <Button type="error" @click="delDto">删除</Button>
+                    </Form-item>
+                </Form>
+            </div>
+            <div :class="isDto?'tab-content-center center-content':'tab-content-left'" style="overflow: auto;">
+                <div v-if="isDto">
+                    <h3 style="margin-top: 0">新增</h3>
+                    <div class="add-columns" >
+                        <Form ref="sigaddvalid" :model="newPropForm" :rules="sigAddRule" inline :label-width="60" >
+                            <Form-item label="属性名" prop="name">
+                                <Input v-model="newPropForm.name" type="text" placeholder="属性名"></Input>
+                            </Form-item>
+                            <Form-item label="类型" prop="type" v-if="propTypeList.length > 0">
+                                <Select v-model="newPropForm.type" style="width: 162px" @on-change="function() {newPropForm.format = ''}">
+                                    <Option v-for="item in propTypeList" :value="item.value" :key="item.value">{{ item.label }}</Option>
+                                </Select>
+                            </Form-item>
+                            <Form-item label="格式" prop="format" v-if="propTypeList.length > 0">
+                                <Select v-model="newPropForm.format"  v-show="newPropForm.type == 'base'" style="width: 162px">
+                                    <Option v-for="(item,index) in formatList.base.data" :value="item" :key="index" >{{ item }}</Option>
+                                </Select>
+                                <Select v-model="newPropForm.format" v-show="newPropForm.type == 'array'" style="width: 162px">
+                                    <Option-group label="基本类型">
+                                        <Option v-for="(item,index) in formatList.base.data" :value="'base.' + item" :key="index" >{{ item }}</Option>
+                                    </Option-group>
+                                    <Option-group label="DTO实体">
                                         <div v-for="item in formatList.dto.data">
-                                            <Option v-for="(child,index) in item.data" :value="(item.packName == 'default'?'':item.packName + '.') +child.className" :key="index" ></Option>
+                                            <Option v-for="(child,index) in item.data" :value="'dto.' + (item.packName == 'default'?'':item.packName + '.') + child.className" :key="index" >
+                                                {{(item.packName == 'default'?'':item.packName + '.') +child.className}}
+                                            </Option>
                                         </div>
-                                    </Select>
-                                    <Select v-model="newPropForm.format" v-show="newPropForm.type == 'po'" style="width: 162px">
+                                    </Option-group>
+                                    <Option-group label="PO实体">
                                         <div v-for="item in formatList.po.data">
-                                            <Option v-for="(child,index) in item.data" :value="item.packName + '.' +child.className" :key="index" ></Option>
+                                            <Option v-for="(child,index) in item.data" :value="'po.' + item.packName + '.' +child.className" :key="index" >
+                                                {{item.packName + '.' +child.className}}
+                                            </Option>
                                         </div>
-                                    </Select>
-                                </Form-item>
-                                <Form-item label="描述">
-                                    <Input v-model="newPropForm.description" type="text" placeholder="描述"></Input>
-                                </Form-item>
-                                <Form-item>
-                                    <Button type="primary" @click="sigAddProp">新增</Button>
-                                    <Button type="primary" @click="batchAddProp">批量添加</Button>
-                                    <Button type="primary" @click="cpFromPo">复制PO属性</Button>
-                                </Form-item>
-                            </Form>
-                        </div>
+                                    </Option-group>
+                                </Select>
+                                <Select v-model="newPropForm.format" v-show="newPropForm.type == 'dto'" style="width: 162px">
+                                    <div v-for="item in formatList.dto.data">
+                                        <Option v-for="(child,index) in item.data" :value="(item.packName == 'default'?'':item.packName + '.') +child.className" :key="index" ></Option>
+                                    </div>
+                                </Select>
+                                <Select v-model="newPropForm.format" v-show="newPropForm.type == 'po'" style="width: 162px">
+                                    <div v-for="item in formatList.po.data">
+                                        <Option v-for="(child,index) in item.data" :value="item.packName + '.' +child.className" :key="index" ></Option>
+                                    </div>
+                                </Select>
+                            </Form-item>
+                            <Form-item label="描述">
+                                <Input v-model="newPropForm.description" type="text" placeholder="描述"></Input>
+                            </Form-item>
+                            <Form-item>
+                                <Button type="primary" @click="sigAddProp">新增</Button>
+                                <Button type="primary" @click="batchAddProp">批量添加</Button>
+                                <Button type="primary" @click="cpFromPo">复制PO属性</Button>
+                            </Form-item>
+                        </Form>
                     </div>
-                    <div :class="isDto?'':'propsig'" >
-                        <h3 style="display: inline-block">属性</h3>
-                        <Button type="primary" @click="refProp" size="small" style="display:inline-block;margin-left:90%"><Icon type="refresh"></Icon>刷新</Button>
-
-                    </div>
-                    <Table highlight-row :columns="columns1" :data="centerForm.transferObjField" @on-row-click="rowClick" :style="tableStyle"></Table>
                 </div>
+                <div :class="isDto?'':'propsig'" >
+                    <h3 style="display: inline-block">属性</h3>
+                    <Button type="primary" @click="refProp" size="small" style="display:inline-block;margin-left:90%"><Icon type="refresh"></Icon>刷新</Button>
+
+                </div>
+                <Table highlight-row :columns="columns1" :data="centerForm.transferObjField" @on-row-click="rowClick" :style="tableStyle"></Table>
+            </div>
             </Col>
             <Col span="6" class="tab-content-col" style="padding-left: 8px;" v-if="isDto">
-                <div class="tab-content-left" style="overflow: auto;">
-                    <div style="border-bottom:1px solid #e3e8ee;padding-bottom: 5px;margin-bottom: 8px">
-                        <h3>编辑</h3>
-                    </div>
-                    <Form ref="rightvalid" :rules="rightRule" :model="rightForm" label-position="top">
-                        <Form-item label="属性名" prop="name">
-                            <Input v-model="rightForm.name" placeholder="请输入"></Input>
-                        </Form-item>
-                        <Form-item label="类型" prop="type" v-if="propTypeList.length > 0">
-                            <Select v-model="rightForm.type" placeholder="请选择">
-                                <Option v-for="item in propTypeList" :value="item.value" :key="item.value">{{ item.label }}</Option>
-                            </Select>
-                        </Form-item>
-                        <Form-item label="格式" prop="format" v-if="propTypeList.length > 0">
-                            <Select v-model="rightForm.format"  v-show="rightForm.type == 'base'" >
-                                <Option v-for="(item,index) in formatList.base.data" :value="item" :key="index" >{{ item }}</Option>
-                            </Select>
-                            <Select v-model="rightForm.format" v-show="rightForm.type == 'array'" >
-                                <Option-group label="基本类型">
-                                    <Option v-for="(item,index) in formatList.base.data" :value="'base.' + item" :key="index" >{{ item }}</Option>
-                                </Option-group>
-                                <Option-group label="DTO实体">
-                                    <div v-for="item in formatList.dto.data">
-                                        <Option v-for="(child,index) in item.data" :value="'dto.' + (item.packName == 'default'?'':item.packName + '.') +child.className" :key="index" >
-                                            {{(item.packName == 'default'?'':item.packName + '.') +child.className}}
-                                        </Option>
-                                    </div>
-                                </Option-group>
-                                <Option-group label="PO实体">
-                                    <div v-for="item in formatList.po.data">
-                                        <Option v-for="(child,index) in item.data" :value="'po.' + item.packName + '.' + child.className" :key="index" >
-                                            {{item.packName + '.' +child.className}}
-                                        </Option>
-                                    </div>
-                                </Option-group>
-                            </Select>
-                            <Select v-model="rightForm.format" v-show="rightForm.type == 'dto'" >
+            <div class="tab-content-left" style="overflow: auto;">
+                <div style="border-bottom:1px solid #e3e8ee;padding-bottom: 5px;margin-bottom: 8px">
+                    <h3>编辑</h3>
+                </div>
+                <Form ref="rightvalid" :rules="rightRule" :model="rightForm" label-position="top">
+                    <Form-item label="属性名" prop="name">
+                        <Input v-model="rightForm.name" placeholder="请输入"></Input>
+                    </Form-item>
+                    <Form-item label="类型" prop="type" v-if="propTypeList.length > 0">
+                        <Select v-model="rightForm.type" placeholder="请选择">
+                            <Option v-for="item in propTypeList" :value="item.value" :key="item.value">{{ item.label }}</Option>
+                        </Select>
+                    </Form-item>
+                    <Form-item label="格式" prop="format" v-if="propTypeList.length > 0">
+                        <Select v-model="rightForm.format"  v-show="rightForm.type == 'base'" >
+                            <Option v-for="(item,index) in formatList.base.data" :value="item" :key="index" >{{ item }}</Option>
+                        </Select>
+                        <Select v-model="rightForm.format" v-show="rightForm.type == 'array'" >
+                            <Option-group label="基本类型">
+                                <Option v-for="(item,index) in formatList.base.data" :value="'base.' + item" :key="index" >{{ item }}</Option>
+                            </Option-group>
+                            <Option-group label="DTO实体">
                                 <div v-for="item in formatList.dto.data">
-                                    <Option v-for="(child,index) in item.data" :value="(item.packName == 'default'?'':item.packName + '.') +child.className" :key="index" ></Option>
+                                    <Option v-for="(child,index) in item.data" :value="'dto.' + (item.packName == 'default'?'':item.packName + '.') +child.className" :key="index" >
+                                        {{(item.packName == 'default'?'':item.packName + '.') +child.className}}
+                                    </Option>
                                 </div>
-                            </Select>
-                            <Select v-model="rightForm.format" v-show="rightForm.type == 'po'" >
+                            </Option-group>
+                            <Option-group label="PO实体">
                                 <div v-for="item in formatList.po.data">
-                                    <Option v-for="(child,index) in item.data" :value="item.packName + '.' +child.className" :key="index" ></Option>
+                                    <Option v-for="(child,index) in item.data" :value="'po.' + item.packName + '.' + child.className" :key="index" >
+                                        {{item.packName + '.' +child.className}}
+                                    </Option>
                                 </div>
-                            </Select>
-                        </Form-item>
-                        <Form-item label="描述">
-                            <Input v-model="rightForm.description" placeholder="请输入"></Input>
-                        </Form-item>
-                        <Form-item :label="(rightForm.format === 'String')?'最小长度':'最小值'" prop="min">
+                            </Option-group>
+                        </Select>
+                        <Select v-model="rightForm.format" v-show="rightForm.type == 'dto'" >
+                            <div v-for="item in formatList.dto.data">
+                                <Option v-for="(child,index) in item.data" :value="(item.packName == 'default'?'':item.packName + '.') +child.className" :key="index" ></Option>
+                            </div>
+                        </Select>
+                        <Select v-model="rightForm.format" v-show="rightForm.type == 'po'" >
+                            <div v-for="item in formatList.po.data">
+                                <Option v-for="(child,index) in item.data" :value="item.packName + '.' +child.className" :key="index" ></Option>
+                            </div>
+                        </Select>
+                    </Form-item>
+                    <Form-item label="描述">
+                        <Input v-model="rightForm.description" placeholder="请输入"></Input>
+                    </Form-item>
+                    <div v-if="rightForm.format == 'String' || rightForm.format == 'Integer' || rightForm.format == 'Long'">
+                        <Form-item :label="(rightForm.format === 'String')?'最小长度':'最小值'" prop="min">{{rightForm.format}}
                             <Input v-model="rightForm.min"></Input>
                         </Form-item>
                         <Form-item :label="(rightForm.format === 'String')?'最大长度':'最大值'" prop="max">
                             <Input v-model="rightForm.max"></Input>
                         </Form-item>
-                        <Form-item label="正则表达式" v-show="rightForm.format === 'String'">
+                        <Form-item label="正则表达式" v-if="rightForm.format === 'String'">
                             <Input v-model="rightForm.pattern"></Input>
                         </Form-item>
+                    </div>
+                    <div v-if="rightForm.type == 'base'">
                         <Form-item label="是否为空">
                             <Radio-group v-model="rightForm.isNullable">
                                 <Radio label="1">是</Radio>
@@ -306,12 +310,13 @@
                                 <Radio label="0">否</Radio>
                             </Radio-group>
                         </Form-item>
-                        <Form-item>
-                            <Button type="primary" @click="cmtPropEdit">提交</Button>
-                            <Button type="error" @click="sigDelProp" style="margin-left: 8px">删除</Button>
-                        </Form-item>
-                    </Form>
-                </div>
+                    </div>
+                    <Form-item>
+                        <Button type="primary" @click="cmtPropEdit">提交</Button>
+                        <Button type="error" @click="sigDelProp" style="margin-left: 8px">删除</Button>
+                    </Form-item>
+                </Form>
+            </div>
             </Col>
         </Row>
         <Modal v-model="batchPop" title="批量添加" width="970px" @on-ok="cmtBatchAdd">
@@ -554,7 +559,7 @@
         props: ['getData'],
         created: function () {
             this.getEntityData();
-            this.getDataType()
+            this.getDataType();
             //this.menuSelected(this.activeMenu)
             //console.log(this.getData());
         },
@@ -572,8 +577,7 @@
         },
         methods: {
             refProp() {
-                this.menuSelected(this.newPropForm.transferObjId)
-                //console.log(this.newPropForm.transferObjId)
+                this.menuSelected(this.newPropForm.transferObjId);
             },
             cpFromPo () {
                 this.isCpFromPo = true
@@ -581,7 +585,6 @@
                     poName: '',
                     poPropTab: []
                 }
-                //console.log(this.poMenus)
             },
             selCpPo (poId) {
                 if (poId != ''){
@@ -592,15 +595,13 @@
                             let name = existProp[i].name
                             for (let j = 0; j < poObj.transferObjField.length; j++) {
                                 if (poObj.transferObjField[j].name === name){
-                                    poObj.transferObjField.splice(j,1)
+                                    poObj.transferObjField.splice(j,1);
                                 }
                             }
                         }
-                        this.copyPoForm.poPropTab = poObj.transferObjField
-
+                        this.copyPoForm.poPropTab = poObj.transferObjField;
                     });
                 }
-                //console.log(poId)
             },
             selCpPoProp (propSet) {
                 let _this = this
@@ -614,31 +615,28 @@
                         type: propSet[i].type
                     })
                 }
-                this.propToCommit = propToCommit
+                this.propToCommit = propToCommit;
             },
             cmtCpFromPo() {
-                var _this = this
-                var poPropHere = this.propToCommit
-                //console.log()
+                var _this = this;
+                var poPropHere = this.propToCommit;
                 this.$http.post('/codegen/api/v1/transferobjfields/Save', poPropHere).then((response) => {
-                    //console.log(response.data)
-                    _this.menuSelected(_this.newPropForm.transferObjId)
+                    _this.menuSelected(_this.newPropForm.transferObjId);
                 });
-                //console.log(this.propToCommit)
             },
             sigAddProp () {
                 //this.newPropForm.transferObjId = this.centerForm.id
-                var newProp = this.newPropForm
-                var _this = this
+                var newProp = this.newPropForm;
+                var _this = this;
                 this.$refs['sigaddvalid'].validate((valid) => {
                     if (valid) {
                         _this.$http.post('/codegen/api/v1/transferobjfield/save',newProp).then((response) => {
                             //console.log(response.data)
-                            _this.menuSelected(_this.newPropForm.transferObjId)
-                            _this.$Message.success('新增成功')
+                            _this.menuSelected(_this.newPropForm.transferObjId);
+                            _this.$Message.success('新增成功');
                         });
                     } else {
-                        this.$Message.error('请正确填写表单')
+                        this.$Message.error('请正确填写表单');
                     }
                 })
             },
@@ -665,16 +663,12 @@
                 var batchPropHere = this.batchForm
                 //console.log()
                 this.$http.post('/codegen/api/v1/transferobjfields/Save', batchPropHere).then((response) => {
-                            //console.log(response.data)
+                    //console.log(response.data)
                     _this.menuSelected(_this.newPropForm.transferObjId)
                 });
-
-
-                //console.log(this.batchForm)
             },
             //menu选中
             menuSelected (entity) {
-                //console.log(entity);
                 var _this = this
                 var isDtoHere = false
                 for (let i = 0; i < this.menus.length; i++) {
@@ -693,9 +687,6 @@
                         data: '',
                         showLoading : true
                     }).then((response) => {
-                    //this.$http.get('/codegen/api/v1/transferobj/'+ entity +'/show').then((response) => {
-                        //debugger
-                        //console.log(response.data)
                         var transferObj = response.data.transferObj
                         _this.centerForm = {
                             transferObjField: transferObj.transferObjField,
@@ -713,8 +704,6 @@
                         data: '',
                         showLoading : true
                     }).then((response) => {
-                    //this.$http.get('/codegen/api/v1/tables/'+ entity +'/dto').then((response) => {
-                        //console.log(response.data)
                         var transferObjField = response.data.transferObj.transferObjField
                         _this.centerForm = {
                             transferObjField: transferObjField
@@ -731,15 +720,14 @@
                     isNullable: '',
                     pattern: '',
                     readOnly: ''
-                }
+                };
                 this.newPropForm = {
                     transferObjId: entity,
                     name: '',
                     type: 'base',
                     format: '',
                     description: ''
-                }
-
+                };
                 if (this.isDto){
                     this.$nextTick(()=>{
                         this.$refs['sigaddvalid'].resetFields();
@@ -752,8 +740,7 @@
                 if (this.isDto) {
                     let formatHere = data.format
                     if (data.type === 'array') {
-                        //console.log(data)
-                        formatHere = data.arrayType + '.' + formatHere
+                        formatHere = data.arrayType + '.' + formatHere;
                     }
                     this.rightForm = {
                         name: data.name,
@@ -768,11 +755,8 @@
                         readOnly: data.readOnly
                     }
                 }
-                console.log(data);
-                console.log(this.rightForm)
             },
             cmtPropEdit () {
-                //debugger
                 var editProp = {
                     description: this.rightForm.description,
                     format: this.rightForm.format,
@@ -800,8 +784,6 @@
                             }).then((response) => {
                                 this.$nextTick(()=>{
                                     this.menuSelected(this.newPropForm.transferObjId)
-
-                                    //this.rightForm = editProp
                                 })
                                 this.$Message.success('提交成功');
                             });
@@ -810,12 +792,10 @@
                         }
                     })
                 }
-                //console.log(this.rightForm)
             },
             sigDelProp () {
-                var _this = this
-                //console.log()
-                var propId = this.rightForm.id
+                var _this = this;
+                var propId = this.rightForm.id;
                 if (propId === "") {
                     this.$Message.error('请选择属性')
                 } else {
@@ -841,7 +821,6 @@
                     packageName: 'other',
                     projectId: this.getData()
                 }
-                //console.log(this.menus)
             },
             commitNewDto () {
                 this.$refs['newentityvalid'].validate((valid) => {
@@ -876,13 +855,11 @@
                             //this.getDataType ()
                             this.menuSelected(cmtEdit.id)
                             this.$Message.success('保存成功')
-                            //console.log(cmtEdit.id)
                         });
                     } else {
                         this.$Message.error('请正确填写表单')
                     }
                 })
-                //console.log(cmtEdit)
             },
             delDto () {
                 this.$http.delete('/codegen/api/v1/transferObj/' + this.centerForm.id + '/delete').then((response) => {
@@ -893,16 +870,12 @@
             },
             getEntityData () {
                 this.$http.get('/codegen/api/v1/project/'+this.getData()+'/dto_po').then((response) => {
-                    //console.log(response.data)
                     this.menus = response.data.dto.data;
                     this.poMenus = response.data.po.data;
-                    //console.log(this.menus)
                     if (this.menus.length > 1) {
-                        //debugger
                         for (var i=0; i < this.menus.length; i++) {
                             if (this.menus[i].packName != 'default'){
                                 this.activeMenu = this.menus[i].data[0].id;
-                                //console.log(this.menus[i].data[0])
                                 break;
                             }
                         }
@@ -927,9 +900,7 @@
                 this.dtoPackage = []
                 this.propTypeList = []
                 this.$http.get('/codegen/api/v1/project/'+this.getData()+'/data_type').then((response) => {
-                    //console.log(response.data)
                     _this.formatList = response.data;
-                    console.log(_this.formatList)
                     var dtoData = response.data.dto.data
                     _this.dtoPackage.push('other')
                     for (let i = 0; i < dtoData.length; i++){
