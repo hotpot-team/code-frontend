@@ -107,7 +107,7 @@
                 <Col span="10" class="tab-content-col">
                 <div class="validate-hide tab-content-left" style="overflow: auto;">
                     <h3 style="margin-bottom: 16px">编辑<span v-show="isShow">(自动生成的)</span></h3>
-                    <Form ref="methodTop" :model="formTop" label-position="top" :rules="ruleValidate">
+                    <Form ref="methodTop" :model="formTop" label-position="left" :rules="ruleValidate" :label-width="80">
                         <Form-item label="uri" prop="uri" >
                             <Input v-model="formTop.uri" :disabled="disabledApiOpj"></Input>
                         </Form-item>
@@ -125,16 +125,16 @@
                         <Form-item label="标签" >
                             <Input v-model="formTop.tag" :disabled="disabledApiOpj"></Input>
                         </Form-item>
-                        <Button type="primary" style="float:right;" @click="addProp" :disabled="disabledApiOpj">新增参数</Button>
                         <Form-item label=" 参数" >
-                            <Table :columns="columns1" :data="formTop.data1" style="margin-top: 20px;"></Table>
+                            <Table :columns="columns1" :data="formTop.data1"></Table>
+                            <Button type="primary" @click="addProp" :disabled="disabledApiOpj" style="margin-top: 20px;">新增参数</Button>
                         </Form-item>
                     </Form>
-                    <Form ref="responseObjGenericTypeAndFormat" :model="formTop" label-position="top" :rules="ruleValidate">
+                    <Form ref="responseObjGenericTypeAndFormat" :model="formTop" label-position="left" :rules="ruleValidate" :label-width="80">
                         <Row>
                             <Col :span="span">
                             <Form-item label="返回值" prop="responseObjName" >
-                                <Select  v-model="formTop.responseObjName" placeholder="请选择" @on-change="returnValueChange" :disabled="disabledApiOpj">
+                                <Select  v-model="formTop.responseObjName" placeholder="请选择" @on-change="returnValueChange" :disabled="disabledApiOpj" placement="top">
                                     <div v-for="item in ResponseObjName.dto.data">
                                         <Option v-for="(child,index) in item.data" :value="(item.packName == 'default'?'':item.packName + '.') +child.className" :key="index" :disabled="disabledApiOpj"></Option>
                                     </div>
@@ -143,19 +143,19 @@
                             </Col>
                             <Col span="8">
                             <Form-item label="泛型类型"  prop="responseObjGenericType" v-if="isResponseObjGeneric"  style="margin-left: 8%">
-                                <Select placeholder="请选择" v-model="formTop.responseObjGenericType"  :disabled="disabledApiOpj">
+                                <Select placeholder="请选择" v-model="formTop.responseObjGenericType"  :disabled="disabledApiOpj"  placement="top">
                                     <Option v-for="item in propTypeList" :value="item.value" :key="item.value">{{ item.label }}</Option>
                                 </Select>
                             </Form-item>
                             </Col>
                             <Col span="8"  >
                             <Form-item label="泛型格式" prop="responseObjGenericFormat" v-if="isResponseObjGeneric"  style="margin-left: 8%">
-                                <Select placeholder="请选择"  v-model="formTop.responseObjGenericFormat" v-if="formTop.responseObjGenericType == 'base'" :disabled="disabledApiOpj">
+                                <Select placeholder="请选择"  v-model="formTop.responseObjGenericFormat" v-if="formTop.responseObjGenericType == 'base'" :disabled="disabledApiOpj"  placement="top">
                                     <!--基础类型下的内容-->
                                     <Option v-for="(item,index) in baseTypeList.base.data" :value="item" :key="index" >{{ item }}</Option>
                                 </Select>
                                 <!--集合类型下的内容-->
-                                <Select placeholder="请选择"  v-model="formTop.responseObjGenericFormat" v-if="formTop.responseObjGenericType == 'array'" :disabled="disabledApiOpj">
+                                <Select placeholder="请选择"  v-model="formTop.responseObjGenericFormat" v-if="formTop.responseObjGenericType == 'array'" :disabled="disabledApiOpj"  placement="top">
                                     <Option-group label="基本类型">
                                         <Option v-for="(item,index) in baseTypeList.base.data" :value="'base.'+item" :key="index" >{{ item }}</Option>
                                     </Option-group>
@@ -174,12 +174,12 @@
                                         </div>
                                     </Option-group>
                                 </Select>
-                                <Select placeholder="请选择"  v-model="formTop.responseObjGenericFormat" v-if="formTop.responseObjGenericType == 'dto'" :disabled="disabledApiOpj">
+                                <Select placeholder="请选择"  v-model="formTop.responseObjGenericFormat" v-if="formTop.responseObjGenericType == 'dto'" :disabled="disabledApiOpj"  placement="top">
                                     <div v-for="item in baseTypeList.dto.data">
                                         <Option v-for="(child,index) in item.data" :value="(item.packName == 'default'?'':item.packName + '.') +child.className" :key="index" ></Option>
                                     </div>
                                 </Select>
-                                <Select placeholder="请选择"  v-model="formTop.responseObjGenericFormat" v-if="formTop.responseObjGenericType == 'po'" :disabled="disabledApiOpj">
+                                <Select placeholder="请选择"  v-model="formTop.responseObjGenericFormat" v-if="formTop.responseObjGenericType == 'po'" :disabled="disabledApiOpj"  placement="top">
                                     <div v-for="item in baseTypeList.po.data">
                                         <Option v-for="(child,index) in item.data" :value="item.packName + '.' +child.className" :key="index" ></Option>
                                     </div>

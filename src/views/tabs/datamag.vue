@@ -1,4 +1,4 @@
-<style scoped>
+<style scoped lang="scss">
     .tab-content {
         background-color: #fff;
         border: 1px solid #dddee1;
@@ -18,7 +18,6 @@
         background: #f5f7f9;
         width: 100%;
         height: 100%;
-        padding: 16px;
         border: 1px solid #dddee1;
         border-radius: 4px;
     }
@@ -70,11 +69,14 @@
         flex-direction: row;
         justify-content: space-between;
         margin: 8px 0;
+        background: #fff;
+        padding: 4px;
     }
 
     .relation-info{
         font-size: 14px;
         font-weight: normal;
+        color: #aaa;
     }
     .relation-info span{
         margin: 0 8px;
@@ -97,38 +99,69 @@
         width: calc(100% + 32px);
         display: inline-block;
     }
+
+    .sqlList{
+        padding: 16px;
+        border: 1px solid #e9eaec;
+        border-top: none;
+        background: #fff;
+        display: flex;
+        justify-content: space-between;
+        &:first-of-type{
+            margin-top: 16px;
+            border-top: 1px solid #e9eaec;
+        }
+    }
+</style>
+<style lang="scss">
+#datamag{
+    .ivu-card-head{
+        border: none;
+    }
+    .ivu-card{
+        height: 100%;
+        .ivu-card-body{
+            height: calc(100% - 104px);
+            .ivu-table-wrapper{
+                height: 100%;
+            }
+        }
+    }
+}
 </style>
 <template>
-    <div class="tab-content" style="overflow: hidden;position: relative">
+    <div class="tab-content" id="datamag" style="overflow: hidden;position: relative">
         <Row>
-            <Col span="4" class="tab-content-col" style="padding-right: 8px">
-                <div class="tab-content-block">
-                    <div class="search-menu">
-                        <Input v-model="searchMenu" icon="search" placeholder="请输入..."></Input>
-                    </div>
-                    <div style="position: absolute;left: 16px;bottom: 16px;top: 60px;">
-                        <Menu ref="dbList" theme="light" :active-name="activeName" @on-select="menuSelected">
-                            <Menu-item v-show="searchMenu == '' || item.name.indexOf(searchMenu) > -1" v-for="(item, index) in menus" :key="item.id" :name="item.id">
-                                <div class="entity-row"  @click="editEn(index)">
-                                    <Row>
-                                        <Col span="8">
-                                        <div>
-                                            {{item.name}}
-                                        </div>
-                                        </Col>
-                                    </Row>
-                                </div>
-                            </Menu-item>
-                        </Menu>
-                    </div>
-                </div>
-            </Col>
-            <Col span="15"  class="tab-content-col" style="padding-right: 8px;">
+            <!--<Col span="4" class="tab-content-col" style="padding-right: 8px">-->
+                <!--<div class="tab-content-block">-->
+                    <!--<div class="search-menu">-->
+                        <!--<Input v-model="searchMenu" icon="search" placeholder="请输入..."></Input>-->
+                    <!--</div>-->
+                    <!--<div style="position: absolute;left: 16px;bottom: 16px;top: 60px;">-->
+                        <!--<Menu ref="dbList" theme="light" :active-name="activeName" @on-select="menuSelected">-->
+                            <!--<Menu-item v-show="searchMenu == '' || item.name.indexOf(searchMenu) > -1" v-for="(item, index) in menus" :key="item.id" :name="item.id">-->
+                                <!--<div class="entity-row"  @click="editEn(index)">-->
+                                    <!--<Row>-->
+                                        <!--<Col span="8">-->
+                                        <!--<div>-->
+                                            <!--{{item.name}}-->
+                                        <!--</div>-->
+                                        <!--</Col>-->
+                                    <!--</Row>-->
+                                <!--</div>-->
+                            <!--</Menu-item>-->
+                        <!--</Menu>-->
+                    <!--</div>-->
+                <!--</div>-->
+            <!--</Col>-->
+            <Col span="15"  class="tab-content-col" style="padding-right: 16px;">
                 <div class="tab-content-block">
                     <Card :bordered="false" style="background: #f5f7f9" dis-hover>
                         <div slot="title">
                             <div v-if="displayData.dbName != null && displayData.dbName != ''">
-                                {{displayData.dbName}}
+                                <Select v-model="activeName" @on-select="menuSelected" style="width: 120px">
+                                    <Option v-for="item in menus" :key="item.id" :value="item.id" :label="item.name"></Option>
+                                </Select>
                                 <Button type="primary" @click="syncDB" style="margin-left: 16px;" icon="refresh">同步</Button>
                                 <Button type="primary" @click="autoCrud">激活CRUD API</Button>
                                 <Button type="primary" @click="inAutoCrud">停止CRUD API</Button>
@@ -142,21 +175,21 @@
                         highlight-row
                         stripe >
                         </Table>
-                        <div style="margin: 10px;overflow: hidden">
-                            <div style="float: right;">
-                                <Page ref="pages" :total="totalNum" :page-size="pageSize" :current="currentPage" @on-change="changePage" show-total placement="top"></Page>
-                            </div>
-                        </div>
+                        <!--<div style="margin: 10px;overflow: hidden">-->
+                            <!--<div style="float: right;">-->
+                                <!--<Page ref="pages" :total="totalNum" :page-size="pageSize" :current="currentPage" @on-change="changePage" show-total placement="top"></Page>-->
+                            <!--</div>-->
+                        <!--</div>-->
                     </Card>
                 </div>
             </Col>
-            <Col span="5"  class="tab-content-col">
-                <div class="tab-content-block">
+            <Col span="9"  class="tab-content-col">
+                <div class="tab-content-block" style="padding: 16px">
                     <Form>
-                        <div style="border-bottom:1px solid #e3e8ee;padding-bottom: 8px;margin-bottom: 3px">
+                        <div style="padding-bottom: 8px;margin-bottom: 3px">
                             <h3>编辑 {{rightForm.name}}</h3>
                         </div>
-                        <Form-item label="描述">
+                        <Form-item>
                             <Input v-model="rightForm.comments.comments" type="textarea" :rows="4" placeholder="描述"></Input>
                         </Form-item>
                         <Form-item>
@@ -164,18 +197,23 @@
                         </Form-item>
                     </Form>
                     <div v-if="rightForm.isAutoCrud == 1">
-                        <div class="line"></div>
-                        <div style="padding-bottom: 8px;margin-bottom: 3px;display: flex;flex-direction: row;justify-content: space-between">
-                            <h3 style="line-height: 32px;display: inline-block">resultFul关联</h3>
-                            <Button type="ghost" @click="handleAdd" icon="plus-round">新增restFul关联</Button>
-                        </div>
-                        <div v-for="(item, index) in tableRelations" :key="index" class="relation-row">
-                            <div>
-                                <div class="relation-info">{{rightForm.name}}<span>{{item.relation}}</span>{{item.slaveTableName}}</div>
-                                <div>{{rightForm.name}}.{{item.masterColumnName}}={{item.slaveTableName}}.{{item.slaveColumnName}}</div>
-                            </div>
-                            <div class="relation-del"  @click="delRelation(item.id, index)"><Icon type="close" style="color: #999"></Icon></div>
-                        </div>
+                        <Tabs value="relTab1">
+                            <TabPane label="resultFul关联" name="relTab1">
+                                <Table :data="tableRelations" :columns="relationColumns" style="margin-top: 16px"></Table>
+                                <Button type="primary" @click="handleAdd" icon="plus-round" style="margin-top: 16px">新增</Button>
+                            </TabPane>
+                            <TabPane label="高级关联" name="relTab2">
+                                <!--<Table :data="tableRelations" :columns="relationColumns" style="margin-top: 16px"></Table>-->
+                                <div v-for="(item, index) in seniorRelationList" class="sqlList">
+                                    <span v-html="item.sql"></span>
+                                    <div style="vertical-align: middle; display: inline-flex;">
+                                        <Button type="text" @click="seniorEdit(item.id)" icon="edit"></Button>
+                                        <Button type="text" @click="seniorDelete(item.id, index)" icon="close"></Button>
+                                    </div>
+                                </div>
+                                <Button type="primary" @click="seniorAdd" icon="plus-round" style="margin-top: 16px">新增</Button>
+                            </TabPane>
+                        </Tabs>
                     </div>
                 </div>
             </Col>
@@ -183,9 +221,9 @@
         <Modal v-model="relModel"
                 title="关联<(￣3￣)> 表"
                 @on-ok="relationOk">
-            <Form :model="addRelation" label-position="left" :label-width="60" ref="relationForm">
+            <Form :model="addRelation" label-position="right" :label-width="80" ref="relationForm">
                 <FormItem label="当前表：">
-                    {{rightForm.name}}</p>
+                    {{rightForm.name}}
                 </FormItem>
                 <FormItem label="关系：" prop="relation">
                     <RadioGroup v-model="addRelation.relation">
@@ -200,22 +238,59 @@
                 </FormItem>
                     <Row>
                         <Col span="12">
-                            <FormItem label="关联字段：" prop="masterColumnName">
-                                <Select v-model="addRelation.masterColumnName" placeholder="主表字段">
-                                    <Option v-for="(item, index) in masterColumns" :key="index" :label="item.name" :value="item.name"></Option>
+                            <FormItem label="关联字段：" prop="masterColumnIndex">
+                                <Select v-model="addRelation.masterColumnIndex" placeholder="主表字段" @on-change="masterChange">
+                                    <Option v-for="(item, index) in masterColumns" :key="index" :label="item.name" :value="index"></Option>
                                 </Select>
                             </FormItem>
                         </Col>
                         <Col span="12">
-                            <FormItem prop="slaveColumnName">
+                            <FormItem prop="slaveColumnIndex">
                                 <span slot="label" style="text-align: center; display: inline-block;width: 100%">=</span>
-                                <Select v-model="addRelation.slaveColumnName"  placeholder="子表表字段">
-                                    <Option v-for="(item, index) in slaveColumns" :key="index" :label="item.name" :value="item.name"></Option>
+                                <Select v-model="addRelation.slaveColumnIndex"  placeholder="子表表字段" @on-change="slaveChange">
+                                    <Option v-for="(item, index) in slaveColumns" :key="index" :label="item.name" :value="index"></Option>
                                 </Select>
                             </FormItem>
                         </Col>
                     </Row>
             </Form>
+        </Modal>
+        <Modal v-model="seniorModel"
+               title="高级关联表"
+               @on-ok="seniorRelationOk" width="700">
+            <div>select * from {{rightForm.name}}<Button @click="addTableRelation">新增关联表</Button></div>
+            <div v-for="(ite, i) in seniorRelation.relationTables" style="margin-top: 20px">
+                <div style="display: flex;justify-content: space-between">
+                    <div>
+                        <Select v-model="ite.relation" style="width: 150px">
+                            <Option label="left join" value="left join"></Option>
+                            <Option label="inner join" value="inner join"></Option>
+                        </Select>
+                        <Select v-model="ite.slaveTableId" placeholder="关联表" @on-change="seniorRelTableChange($event, i)" style="width: 150px">
+                            <Option v-for="item in displayData.dbData" :key="item.id" :label="item.name" :value="item.id"></Option>
+                        </Select>
+                    </div>
+                    <div>
+                        <Button v-if="i != 0" @click="deleteSenior(seniorRelation.relationTables, i)" icon="trash-a" shape="circle"></Button>
+                        <Button @click="addColumnRelation(i)" icon="plus" shape="circle"></Button>
+                    </div>
+                </div>
+                <div v-for="(column, index) in ite.relationColumns" :key="index" style="margin-top: 8px;padding-left: 16px">
+                    <div style="display: flex;justify-content: space-between">
+                        <div>
+                            <span>on {{rightForm.name}}.</span>
+                            <Select v-model="column.masterColumnName" placeholder="主表字段" style="width: 150px" @on-change="seniorMasterColumnChange($event, column)">
+                                <Option v-for="(item, index) in masterColumns" :key="index" :label="item.name" :value="item.name"></Option>
+                            </Select>
+                            {{column.operate}} {{ite.slaveTableName?ite.slaveTableName+'.':''}}
+                            <Select v-model="column.slaveColumnName"  placeholder="子表表字段" style="width: 150px" @on-change="seniorSlaveColumnChange($event, column, ite.slaveColumns)">
+                                <Option v-for="(item, index) in ite.slaveColumns" :key="index" :label="item.name" :value="item.name"></Option>
+                            </Select>
+                        </div>
+                        <Button v-if="index != 0" @click="deleteSenior(ite.relationColumns, index)" icon="trash-a" shape="circle"></Button>
+                    </div>
+                </div>
+            </div>
         </Modal>
     </div>
 </template>
@@ -224,19 +299,23 @@
         data () {
             return {
                 relModel: false,
+                seniorModel: false,
                 addRelation: {
                     masterTableId: '',
                     slaveTableId: '',
                     relation: '',
                     masterColumnName: '',
-                    slaveColumnName: ''
+                    slaveColumnName: '',
+                    masterColumnType: '',
+                    slaveColumnType: '',
+                    masterColumnIndex: '',
+                    slaveColumnIndex: ''
                 },
+                seniorRelation: {},
                 tableRelations: [],
                 masterColumns: [],
                 slaveColumns: [],
-                totalNum : 0,//总条数
-                currentPage : 1, //当前页
-                pageSize: 10,
+                seniorRelationList:[],
                 tabRows: [],
                 dbIndex: '0',
                 rightForm: {
@@ -253,19 +332,54 @@
                 param : {
                     orders: [
                         {
-                            fieldName: 'createdAt',
-                            orderType: 'DESC'
+                            fieldName: 'name',
+                            orderType: 'ASC'
                         }
                     ],
                     pageParms: {
                         autoRecordCount: true,
                         pageIndex: 0,
-                        pageSize: 0,
+                        pageSize: 10000,
                         recordCount: 0
                     }
                 },
-                menus : [],
                 searchMenu: '',
+                relationColumns:[
+                    {
+                        key: 'slaveTableName',
+                        width: 150,
+                        title: '从表'
+                    },
+                    {
+                        key: 'relation',
+                        width: 120,
+                        title: '关系'
+                    },
+                    {
+                        title: '关联字段',
+                        render: (h, param)=>{
+                            return this.rightForm.name + '.' + param.row.masterColumnName + ' = ' + param.row.slaveTableName + '.' + param.row.slaveColumnName;
+                        }
+                    },
+                    {
+                        title: '操作',
+                        width: 80,
+                        render: (h, param)=>{
+                            return h('Button', {
+                                props: {
+                                    size: 'small',
+                                    icon: 'close',
+                                    type: 'text'
+                                },
+                                on: {
+                                    click: () => {
+                                        this.delRelation(param.row.id, param.index);
+                                    }
+                                }
+                            });
+                        }
+                    },
+                ],
                 tableColumns1: [
                     {
                         type: 'selection',
@@ -333,6 +447,127 @@
         },
         props: ["getData"],
         methods: {
+            //编辑高级关联
+            seniorEdit(id){
+                this.seniorRelation = {};
+                this.$http.get('/codegen/api/v1/tables/seniorRelations/'+id).then((response)=>{
+                    if (response.data.statusCode == '200') {
+                        this.seniorRelation = response.data.seniorRelation;
+                        this.seniorRelation.relationTables.forEach((value, index, array)=>{
+                            this.$http.get('/codegen/api/v1/tables/'+value.slaveTableId+'/columns').then((res)=>{
+                                this.$set(this.seniorRelation.relationTables[index], 'slaveColumns', res.data.columns)
+                            });
+                        });
+                    }
+                });
+                if (this.masterColumns == null || this.masterColumns.length == 0) {
+                    this.$http.get('/codegen/api/v1/tables/'+this.rightForm.id+'/columns').then((response)=>{
+                        this.masterColumns = response.data.columns;
+                    });
+                }
+                this.seniorModel = true;
+            },
+            //删除高级关联
+            seniorDelete(id, index){
+                this.$http.delete('/codegen/api/v1/tables/seniorRelations/'+id+'/delete').then((response)=>{
+                    this.seniorRelationList.splice(index, 1);
+                });
+            },
+            //删除高级关联中的字段或者表
+            deleteSenior(columns, index){
+                columns.splice(index, 1);
+            },
+            //高级 从表字段变化
+            seniorSlaveColumnChange(slaveColumnName, column, list){
+                let scolumn = list.find((db)=>{
+                    return db.name == slaveColumnName;
+                });
+                if (scolumn)
+                column.slaveColumnType = scolumn.javaType;
+            },
+            //高级 主表字段变化
+            seniorMasterColumnChange(masterColumnName, column){
+                let mcolumn = this.masterColumns.find((db)=>{
+                    return db.name == masterColumnName;
+                });
+                if (mcolumn)
+                column.masterColumnType = mcolumn.javaType;
+            },
+            //保存高级关联
+            seniorRelationOk(){
+                this.$http.put('/codegen/api/v1/tables/seniorRelations/save', this.seniorRelation).then((response)=>{
+                    if (response.data.statusCode == '200') {
+                        this.getTableSeniorRelations(this.rightForm.id);
+                    }
+                });
+            },
+            //高级关联新增表关联
+            addTableRelation(){
+                this.seniorRelation.relationTables.push(
+                    {
+                        relation: 'left join',
+                        slaveTableId: '',
+                        slaveTableName: '',
+                        slaveColumns:[],
+                        relationColumns: [
+                            {
+                                masterTableName:'',
+                                slaveTableName:'',
+                                masterColumnName:'',
+                                slaveColumnName:'',
+                                masterColumnType:'',
+                                slaveColumnType:'',
+                                operate: '='
+                            }
+                        ]
+                    }
+                );
+            },
+            addColumnRelation(i){
+                this.seniorRelation.relationTables[i].relationColumns.push(
+                    {
+                        masterTableName:'',
+                        slaveTableName:'',
+                        masterColumnName:'',
+                        slaveColumnName:'',
+                        masterColumnType:'',
+                        slaveColumnType:'',
+                        operate: '='
+                    }
+                );
+            },
+            //新增高级关联
+            seniorAdd() {
+                this.seniorRelation = {
+                    masterTableId : this.rightForm.id,
+                    masterTableName : this.rightForm.name,
+                    relationTables : [
+                        {
+                            relation: 'left join',
+                            slaveTableId: '',
+                            slaveTableName: '',
+                            slaveColumns:[],
+                            relationColumns: [
+                                {
+                                    masterTableName:'',
+                                    slaveTableName:'',
+                                    masterColumnName:'',
+                                    slaveColumnName:'',
+                                    masterColumnType:'',
+                                    slaveColumnType:'',
+                                    operate: '='
+                                }
+                            ]
+                        }
+                    ]
+                };
+                if (this.masterColumns == null || this.masterColumns.length == 0) {
+                    this.$http.get('/codegen/api/v1/tables/'+this.rightForm.id+'/columns').then((response)=>{
+                        this.masterColumns = response.data.columns;
+                    });
+                }
+                this.seniorModel = true;
+            },
             //删除关联关系
             delRelation(id, index){
                 this.$http.delete('/codegen/api/v1/tables/relations/'+id+'/delete').then((response)=>{
@@ -347,10 +582,25 @@
                     }
                 });
             },
+            //masterChange
+            masterChange(index){
+                this.addRelation.masterColumnName = this.masterColumns[index].name;
+                this.addRelation.masterColumnType = this.masterColumns[index].javaType;
+            },
+            //slaveChange
+            slaveChange(index){
+                this.addRelation.slaveColumnName = this.slaveColumns[index].name;
+                this.addRelation.slaveColumnType = this.slaveColumns[index].javaType;
+            },
             //获取当前表所有关联关系
             getTableRelations(tableId){
                 this.$http.get('/codegen/api/v1/tables/'+tableId + '/relations').then((response)=>{
                     this.tableRelations = response.data.tableRelations;
+                });
+            },
+            getTableSeniorRelations(tableId){
+                this.$http.get('/codegen/api/v1/tables/'+tableId + '/seniorRelations').then((response)=>{
+                    this.seniorRelationList = response.data.seniorRelationList;
                 });
             },
             //打开新增关联CRUD Model
@@ -364,6 +614,8 @@
                     this.masterColumns = response.data.columns;
                 });
                 this.addRelation.masterTableId = this.rightForm.id;
+                this.addRelation.masterColumnIndex='';
+                this.addRelation.slaveColumnIndex='';
                 this.relModel = true;
             },
             relTableChange(id){
@@ -371,16 +623,16 @@
                     this.slaveColumns = response.data.columns;
                 });
             },
-            changePage (curPage) {
-                this.currentPage = curPage
-                this.param.pageParms.pageIndex = curPage - 1;
-                this.editEn (this.dbIndex)
-                this.rightForm = {
-                    id: '',
-                    name: '',
-                    comments: {
-                        comments: ''
-                    }
+            //高级关联 从表变更
+            seniorRelTableChange(id, index){
+                if (id != null && id != '') {
+                    let dbTable = this.displayData.dbData.find((db)=>{
+                        return db.id == id;
+                    });
+                    this.seniorRelation.relationTables[index].slaveTableName = dbTable.name;
+                    this.$http.get('/codegen/api/v1/tables/'+dbTable.id+'/columns').then((response)=>{
+                        this.seniorRelation.relationTables[index].slaveColumns = response.data.columns;
+                    });
                 }
             },
             menuSelected (name) {
@@ -392,8 +644,9 @@
                         break
                     }
                 }
-                this.dbIndex = dbIndex
-                this.changePage(1)
+                this.dbIndex = dbIndex;
+                this.editEn (this.dbIndex);
+                //this.changePage(1)
             },
             selectRows (rows) {
                 this.tabRows = rows
@@ -410,6 +663,7 @@
                 }
                 if (row.isAutoCrud == 1) {
                     this.getTableRelations(row.id);
+                    this.getTableSeniorRelations(row.id);
                 }
                 //console.log(row)
             },
@@ -499,25 +753,24 @@
                     showLoading : true
                 }).then((response) => {
                     if (response.data.statusCode == '200') {
-                        console.log(response.data)
                         this.$http.post('/codegen/api/v1/datasources/' + this.displayData.id + '/tables',this.param).then((response) => {
                             this.displayData.dbData = response.data.data;
-                            this.totalNum = response.data.totalElements;
-                            this.changePage(1)
-                            this.$Message.success('同步成功')
+//                            this.totalNum = response.data.totalElements;
+                            this.editEn (this.dbIndex);
+//                            this.changePage(1);
+                            this.$Message.success('同步成功');
                         });
                     }
                 });
             },
             //menu选中
             editEn (index) {
-                const _this = this
                 this.displayData.dbName = this.menus[index].name;
                 this.displayData.id = this.menus[index].id;
-                this.param.pageParms.pageSize = this.pageSize;
+//                this.param.pageParms.pageSize = this.pageSize;
                 this.$http.post('/codegen/api/v1/datasources/' + this.menus[index].id + '/tables',this.param).then((response) => {
                     this.displayData.dbData = response.data.data;
-                    _this.totalNum = response.data.totalElements;
+//                    _this.totalNum = response.data.totalElements;
                     //console.log(response.data)
                 });
             },
@@ -528,7 +781,7 @@
                     if (_this.menus.length > 0) {
                         _this.activeName = _this.menus[0].id;
                         _this.$nextTick(()=>{
-                            _this.$refs['dbList'].updateActiveName();
+//                            _this.$refs['dbList'].updateActiveName();
                         });
                         _this.editEn(0);
                     }

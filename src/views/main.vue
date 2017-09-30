@@ -104,7 +104,6 @@
 <script>
     import Loading from '../template/loading.vue'
     import {mapGetters} from 'vuex'
-
     import PojMag from './tabs/pojmag.vue'
     import DataMag from './tabs/datamag.vue'
     import ApiMag from './tabs/apimag.vue'

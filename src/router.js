@@ -4,13 +4,13 @@ import Main from './views/main.vue'
 const routers = [{
     path: '/',
     meta: {
-        title: 'home'
+        title: 'ssss'
     },
     component: Index
 },{
     path: '/main',
     meta: {
-        title: 'main'
+        // title: 'main'
     },
     component: Main
 }];

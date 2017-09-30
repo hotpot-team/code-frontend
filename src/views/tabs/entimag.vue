@@ -75,7 +75,7 @@
     .tab-content .tab-content-center.center-title {
         height: 60px;
         margin-bottom: 16px;
-        padding: 12px 0;
+        padding: 12px 32px;
     }
 
     .tab-content .tab-content-center.center-content {
@@ -157,12 +157,18 @@
                             </div>
                         </Select>
                     </Form-item>
-                    <Form-item label="是否支持泛型" :label-width="100">
-                        <Radio-group v-model="centerForm.isGeneric">
-                            <Radio label="1">是</Radio>
-                            <Radio label="0">否</Radio>
-                        </Radio-group>
-                    </Form-item>
+                    <!--<Form-item label="是否支持泛型" :label-width="90">-->
+                        <!--<Radio-group v-model="centerForm.isGeneric">-->
+                            <!--<Radio label="1">是</Radio>-->
+                            <!--<Radio label="0">否</Radio>-->
+                        <!--</Radio-group>-->
+                    <!--</Form-item>-->
+                    <!--<Form-item label="高级DTO" :label-width="80">-->
+                        <!--<Radio-group v-model="centerForm.isSenior">-->
+                            <!--<Radio label="1">是</Radio>-->
+                            <!--<Radio label="0">否</Radio>-->
+                        <!--</Radio-group>-->
+                    <!--</Form-item>-->
                     <Form-item>
                         <Button type="primary" @click="editDto">保存</Button>
                         <Button type="error" @click="delDto">删除</Button>
@@ -230,7 +236,6 @@
                 <div :class="isDto?'':'propsig'" >
                     <h3 style="display: inline-block">属性</h3>
                     <Button type="primary" @click="refProp" size="small" style="display:inline-block;margin-left:90%"><Icon type="refresh"></Icon>刷新</Button>
-
                 </div>
                 <Table highlight-row :columns="columns1" :data="centerForm.transferObjField" @on-row-click="rowClick" :style="tableStyle"></Table>
             </div>
@@ -240,7 +245,7 @@
                 <div style="border-bottom:1px solid #e3e8ee;padding-bottom: 5px;margin-bottom: 8px">
                     <h3>编辑</h3>
                 </div>
-                <Form ref="rightvalid" :rules="rightRule" :model="rightForm" label-position="top">
+                <Form ref="rightvalid" :rules="rightRule" :model="rightForm" label-position="right" :label-width="80">
                     <Form-item label="属性名" prop="name">
                         <Input v-model="rightForm.name" placeholder="请输入"></Input>
                     </Form-item>
@@ -287,7 +292,7 @@
                         <Input v-model="rightForm.description" placeholder="请输入"></Input>
                     </Form-item>
                     <div v-if="rightForm.format == 'String' || rightForm.format == 'Integer' || rightForm.format == 'Long'">
-                        <Form-item :label="(rightForm.format === 'String')?'最小长度':'最小值'" prop="min">{{rightForm.format}}
+                        <Form-item :label="(rightForm.format === 'String')?'最小长度':'最小值'" prop="min">
                             <Input v-model="rightForm.min"></Input>
                         </Form-item>
                         <Form-item :label="(rightForm.format === 'String')?'最大长度':'最大值'" prop="max">
@@ -311,11 +316,9 @@
                             </Radio-group>
                         </Form-item>
                     </div>
-                    <Form-item>
-                        <Button type="primary" @click="cmtPropEdit">提交</Button>
-                        <Button type="error" @click="sigDelProp" style="margin-left: 8px">删除</Button>
-                    </Form-item>
                 </Form>
+                <Button type="primary" @click="cmtPropEdit">提交</Button>
+                <Button type="error" @click="sigDelProp" style="margin-left: 8px">删除</Button>
             </div>
             </Col>
         </Row>
@@ -373,7 +376,7 @@
             <Button type="error" @click="batchDelRow"><Icon type="minus"></Icon></Button>
         </Modal>
         <Modal v-model="newEntity" title="新建dto">
-            <Form ref="newentityvalid" :rules="newEntityRule" :model="newEntityForm" >
+            <Form ref="newentityvalid" :rules="newEntityRule" :model="newEntityForm" :label-width="90">
                 <Form-item label="class" prop="name">
                     <Input v-model="newEntityForm.name"></Input>
                 </Form-item>
@@ -389,15 +392,22 @@
                         </div>
                     </Select>
                 </Form-item>
-                <Form-item label="是否支持泛型">
-                    <Radio-group v-model="newEntityForm.isGeneric">
-                        <Radio label="1">是</Radio>
-                        <Radio label="0">否</Radio>
-                    </Radio-group>
-                </Form-item>
+                <!--<Form-item label="是否支持泛型">-->
+                    <!--<Radio-group v-model="newEntityForm.isGeneric">-->
+                        <!--<Radio label="1">是</Radio>-->
+                        <!--<Radio label="0">否</Radio>-->
+                    <!--</Radio-group>-->
+                <!--</Form-item>-->
+                <!--<Form-item label="高级DTO">-->
+                    <!--<Radio-group v-model="newEntityForm.isSenior">-->
+                        <!--<Radio label="1">是</Radio>-->
+                        <!--<Radio label="0">否</Radio>-->
+                    <!--</Radio-group>-->
+                <!--</Form-item>-->
             </Form>
             <div slot="footer">
-                <Button type="primary" @click="commitNewDto" long>提交</Button>
+                <Button type="text" @click="newEntity = false">取消</Button>
+                <Button type="primary" @click="commitNewDto">提交</Button>
             </div>
         </Modal>
         <Modal v-model="isCpFromPo" title="复制PO属性" width="650px" @on-ok="cmtCpFromPo">
@@ -693,7 +703,8 @@
                             id: transferObj.id,
                             className: transferObj.name,
                             isGeneric: transferObj.isGeneric,
-                            inheritObjName: transferObj.inheritObjName
+                            isSenior : transferObj.isSenior,
+                            inheritObjName : transferObj.inheritObjName
                         }
                     });
                 } else {
@@ -817,7 +828,8 @@
                 this.newEntityForm = {
                     name: '',
                     inheritObjName: '',
-                    isGeneric: '',
+                    isGeneric: 0,
+                    isSenior: 0,
                     packageName: 'other',
                     projectId: this.getData()
                 }
@@ -826,12 +838,12 @@
                 this.$refs['newentityvalid'].validate((valid) => {
                     if (valid) {
                         this.$http.post('/codegen/api/v1/transferobj/save', this.newEntityForm).then((response) => {
-                            this.getEntityData ()
-                            this.getDataType ()
-                            this.newEntity = false
+                            this.getEntityData ();
+                            this.getDataType ();
+                            this.newEntity = false;
                         });
                     } else {
-                        this.$Message.error('请正确填写表单')
+                        this.$Message.error('请正确填写表单');
                     }
                 })
 
@@ -843,7 +855,8 @@
                             name: this.centerForm.className,
                             id: this.centerForm.id,
                             inheritObjName: this.centerForm.inheritObjName,
-                            isGeneric: this.centerForm.isGeneric
+                            isGeneric: this.centerForm.isGeneric,
+                            isSenior : this.centerForm.isSenior,
                         };
                         this.axios({
                             method: 'post',
@@ -891,7 +904,8 @@
                     id: '',
                     className: '',
                     inheritObjName: '',
-                    isGeneric: '',
+                    isGeneric: 0,
+                    isSenior: 0,
                     transferObjField: []
                 }
             },

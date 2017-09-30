@@ -73,13 +73,13 @@
             <div style="margin: 16px 0; width: 100%;">
                 <Form ref="form1" :model="formTop" :rules="ruleValidate" label-position="top" v-show="stepCurrent == 0">
                     <Form-item label="项目名" prop="name">
-                        <Input v-model="formTop.name" placeholder="demo"></Input>
+                        <i-input v-model="formTop.name" placeholder="demo"></i-input>
                     </Form-item>
                     <Form-item label="项目包名" prop="packages">
-                        <Input v-model="formTop.packages" placeholder="com.changan.demo"></Input>
+                        <i-input v-model="formTop.packages" placeholder="com.changan.demo"></i-input>
                     </Form-item>
                     <Form-item label="标题">
-                        <Input v-model="formTop.description" placeholder="请输入标题"></Input>
+                        <i-input v-model="formTop.description" placeholder="请输入标题"></i-input>
                     </Form-item>
                 </Form>
                 <Form ref="addform" :model="formDb" :rules="ruleValidate"  label-position="top" v-show="stepCurrent == 1" class="validate-hide">
@@ -92,26 +92,26 @@
                     <Row>
                         <Col span="11">
                         <Form-item label="数据库地址" prop="dburl">
-                            <Input v-model="formDb.dburl" placeholder=""></Input>
+                            <i-input v-model="formDb.dburl" placeholder=""></i-input>
                         </Form-item>
                         </Col>
                         <Col span="2">&nbsp;</Col>
                         <Col span="11">
                         <Form-item label="数据库名称" prop="dbname">
-                            <Input v-model="formDb.dbname" placeholder=""></Input>
+                            <i-input v-model="formDb.dbname" placeholder=""></i-input>
                         </Form-item>
                         </Col>
                     </Row>
                     <Row>
                         <Col span="11">
                         <Form-item label="数据库用户名" prop="dbuser">
-                            <Input v-model="formDb.dbuser" placeholder=""></Input>
+                            <i-input v-model="formDb.dbuser" placeholder=""></i-input>
                         </Form-item>
                         </Col>
                         <Col span="2">&nbsp;</Col>
                         <Col span="11">
                         <Form-item label="数据库密码" prop="dbpassword">
-                            <Input v-model="formDb.dbpassword" placeholder=""></Input>
+                            <i-input v-model="formDb.dbpassword" placeholder=""></i-input>
                         </Form-item>
                         </Col>
                     </Row>
@@ -133,8 +133,18 @@
                                     {{check.cname}}
                                 </Radio>
                             </RadioGroup>
+
+
                         </Form-item>
                     </div>
+                    <!--<div>
+                        <Form-item label="字典表配置组件" prop="dictGroup" style="margin: 8px">
+                            <RadioGroup v-model="dictGroup">
+                                <Radio label="是"></Radio>
+                                <Radio label="否"></Radio>
+                            </RadioGroup>
+                        </Form-item>
+                    </div>-->
                 </Form>
             </div>
             <div slot="footer">
@@ -152,7 +162,7 @@
         </Modal>
     </div>
 </template>
-<script>
+<script type="text/ecmascript-6">
     export default {
         data () {
             return {
@@ -170,6 +180,7 @@
                         recordCount: 0
                     }
                 },
+                //dictGroup:'否',
                 loading : false,
                 totalNum : 0,//总条数
                 currentPage : 1, //当前页
@@ -280,7 +291,7 @@
                         title: '操作',
                         render: (h, params) => {
                             return h('div', {
-                                class: 'mag-buttons',
+                                class: 'mag-buttons'
                             },[
                                 h('Button', {
                                     props: {
@@ -337,7 +348,7 @@
                         },[
                             h('Button',{
                                 props: {
-                                    size: 'small',
+                                    size: 'small'
                                 },
                                 style: {
                                     marginRight: '7px'
@@ -351,7 +362,6 @@
                             ]),
                             h('Dropdown-menu',{
                                 slot:'list',
-
                             },[h('Dropdown-item',{},
                             [h('span',{
                                     on: {
@@ -364,7 +374,7 @@
                                  } ,[h('span',{
                                     on: {
                                         click: () => {
-                                            this.genFrontCo(params.row.id)
+                                            this.genFrontCo(params.row.name)
                                         }
                                     }
                                 },'生成前端代码并下载')])]),
@@ -388,7 +398,7 @@
                     data: '',
                     showLoading : true
                 }).then((response) => {
-                    console.log(response)
+                    //console.log(response)
                     if (response.status === 200) {
                         var a = document.createElement('a');
                         var url = global.host + response.data.msgData;
@@ -400,6 +410,13 @@
                         this.$Message.error('代码生成失败')
                     }
                 });
+            },
+            //生成前端代码
+            genFrontCo (prjId) {
+                var a = document.createElement('a');
+                var url = global.host +  '/codegen/api/v1/projects/'+prjId+'/downloadUI';
+                a.href = url;
+                a.click();
             },
             getComponents() {
                 this.$http.get('/codegen/api/v1/projects/components/default').then((response)=>{
@@ -413,11 +430,8 @@
                         }
                     }
                     this.formTop.componentsMap = Object.assign({}, this.formTop.componentsMap, componentsMap);
+//                    console.log(this.formTop.componentsMap);
                 });
-            },
-            //生成前端代码
-            genFrontCo (prjId) {
-
             },
             //后台获取数据
             getTableData : function (pageNum) {
@@ -439,6 +453,7 @@
             updatePro: function(index) {
                 this.stepCurrent = 0;
                 this.$http.get('/codegen/api/v1/projects/'+this.tableData1[index].id + '/show').then((response) => {
+//                    console.log(response);
                     this.formTop.datasources = response.data.project.datasources;
                     this.formTop.name = response.data.project.name;
                     this.formTop.packages = response.data.project.packages;
