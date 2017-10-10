@@ -137,14 +137,6 @@
 
                         </Form-item>
                     </div>
-                    <!--<div>
-                        <Form-item label="字典表配置组件" prop="dictGroup" style="margin: 8px">
-                            <RadioGroup v-model="dictGroup">
-                                <Radio label="是"></Radio>
-                                <Radio label="否"></Radio>
-                            </RadioGroup>
-                        </Form-item>
-                    </div>-->
                 </Form>
             </div>
             <div slot="footer">

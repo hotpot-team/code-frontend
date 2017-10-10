@@ -149,10 +149,10 @@
                         <FormItem v-if="addDict" label="name":label-width="80">
                             <i-input v-model="formDispaly.dictNames"></i-input>
                         </FormItem>
-                        <Button v-if="dictFlag && addDict && (formDispaly.dictCodes!=='')" style="margin-bottom:24px " @click="deploy">字典表value配置</Button>
+                        <Button v-if="dictFlag && addDict && (formDispaly.dictCodes !== '')" style="margin-bottom:24px " @click="deploy">字典表value配置</Button>
                         <Button v-if="dictFlag && addDict && (formDispaly.dictCodes === '')" disabled style="margin-bottom:24px " @click="deploy">字典表value配置</Button>
-                        <Button v-if="dictFlag && !addDict && (formDispaly.dictCode!=='无字典值')&& (formDispaly.dictCode!=='')" style="margin-bottom:24px " @click="deploy">字典表value配置</Button>
-                        <Button v-if="dictFlag && !addDict && ((formDispaly.dictCode==='无字典值') || (formDispaly.dictCode===''))" disabled style="margin-bottom:24px " @click="deploy">字典表value配置</Button>
+                        <Button v-if="dictFlag && !addDict && (formDispaly.dictCode !== '无字典值')&& (formDispaly.dictCode !== '')" style="margin-bottom:24px " @click="deploy">字典表value配置</Button>
+                        <Button v-if="dictFlag && !addDict && ((formDispaly.dictCode === '无字典值') || (formDispaly.dictCode === ''))" disabled style="margin-bottom:24px " @click="deploy">字典表value配置</Button>
                         <Form-item>
                             <Row>
                                 <Col span="5">
@@ -172,9 +172,6 @@
     export default {
         data () {
             return {
-                /*objectone: {
-                    zIndex:1100
-                },*/
                 formItem2: {
                     value: '',
                     name: '',
@@ -214,7 +211,8 @@
                     },
                     {
                         title: '排序',
-                        key: 'sort'
+                        key: 'sort',
+                        sortable: true
                     },
                     {
                         title: '操作',
@@ -352,8 +350,7 @@
         props: ["getData"],
         created :function () {
             this.mockTableData1();
-            this.queryDict();
-            this.addDict=false;
+            //this.queryDict();
         },
         watch:{
             dictFlag:function(){
@@ -426,12 +423,13 @@
                 });
             },
             queryDict(){
+                var tableId=this.getData();
                 var obj={
                     code:"无字典值",
                     name:''
                 };
                 this.dictList = [];
-                util.ajax.get('/demo/api/v1/dict_type').then((res)=>{
+                util.ajax.get('/demo/api/v1/table/'+tableId+'/dict_type').then((res)=>{
                     this.dictList=res.data.dictTypes;
                     this.dictList.unshift(obj);
                     this.keys1=-this.keys1;
@@ -484,6 +482,7 @@
                 this.$refs[name].resetFields();
             },
             commit () {
+                var tableId=this.getData();
                 var disData = {};
                 var commitData = {};
                 var index;
@@ -559,7 +558,7 @@
                                         }
                                     }
                                     this.dicts=dictCode;
-                                    util.ajax.post('/codegen/api/v1/column/dict/save',{
+                                    util.ajax.post('/codegen/api/v1/table/'+tableId+'/column/dict/save',{
                                         "column":commitData,
                                         "dictType":{
                                             "code": dictCode,
