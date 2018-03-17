@@ -48,19 +48,19 @@
             <div style="width: 400px;margin: 0 auto;position: relative">
                 <Card style="" dis-hover class="login-card">
                     <h1 style="text-align: center;margin-bottom: 16px">信息共享机制与平台</h1>
-                    <Form :model="loginForm" label-position="left">
+                    <Form ref="formCustom" :model="formCustom" :rules="ruleCustom" label-position="left">
                         <FormItem prop="user">
-                            <Input type="text" v-model="loginForm.username" placeholder="用户名">
+                            <i-input type="text" v-model="formCustom.username" placeholder="用户名">
                             <Icon type="ios-person-outline" slot="prepend"></Icon>
-                            </Input>
+                            </i-input>
                         </FormItem>
                         <FormItem prop="password">
-                            <Input type="password" v-model="loginForm.password" placeholder="密码">
+                            <i-input type="password" v-model="formCustom.password" placeholder="密码">
                             <Icon type="ios-locked-outline" slot="prepend"></Icon>
-                            </Input>
+                            </i-input>
                         </FormItem>
                         <FormItem style="text-align: center">
-                            <Button @click="login">登录</Button>
+                            <Button @click="login('formCustom')">登录</Button>
                         </FormItem>
                     </Form>
                 </Card>
@@ -73,13 +73,23 @@
         </div>
     </div>
 </template>
-<script>
+<script type="text/ecmascript-6">
+
+    import {mapMutations} from 'vuex';
     export default {
         data() {
             return {
-                loginForm : {
+                formCustom : {
                     username : '',
                     password : ''
+                },
+                ruleCustom: {
+                    username: [
+                        { required: true,message:'请输入用户名', trigger: 'blur' }
+                    ],
+                    password: [
+                        { required: true,message:'请输入密码', trigger: 'blur' }
+                    ]
                 }
             };
         },
@@ -90,8 +100,33 @@
             }
         },
         methods : {
-            login : function() {
-                this.$router.push({path:'/main'});
+            ...mapMutations({
+                changeLoginInfo:'CHANGELOGININFO'
+            }),
+            login(name){
+                var me=this;
+                me.$refs[name].validate((valid) => {
+                    if (valid) {
+                        let formData = new FormData();
+                        formData.append('username',me.formCustom.username);
+                        formData.append('password',me.formCustom.password);
+                        me.$http.post('/login',formData).then((response) => {
+                            const info={};
+                            console.log(response)
+                            info.authToken = response.headers.auth_token;
+                            info.username = response.data.data &&response.data.data.name;
+                            info.loginId = response.data.data &&response.data.data.loginId;
+                            window.localStorage.loginInfo=JSON.stringify(info);
+                            this.changeLoginInfo(info);
+                            me.$router.push({path:'/main'});
+                        }).catch((res) => {
+                            debugger
+                            me.$Message.info('登录失败');
+                        })
+                    } else {
+                        me.$Message.error('表单验证失败!');
+                    }
+                })
             },
             renderBackground: function () {
                 var canvas = document.querySelector('canvas'),

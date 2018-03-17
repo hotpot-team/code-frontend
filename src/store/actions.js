@@ -1,10 +1,9 @@
-import * as types from './type.js'
 
-export default{
-    showloader:({ commit }) => {
-        commit( types.SHOWLOADING )
-    },
-    hideloader:({ commit }) => {
-        commit( types.HIDELOADING )
-    },
-}
+
+// export const addToCart = ({ commit }, product) => {
+//     if (product.inventory > 0) {
+//         commit(types.ADD_TO_CART, {
+//             id: product.id
+//         });
+//     }
+// }

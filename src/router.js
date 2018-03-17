@@ -4,7 +4,7 @@ import Main from './views/main.vue'
 const routers = [{
     path: '/',
     meta: {
-        title: 'ssss'
+        title: '代码生成器'
     },
     component: Index
 },{

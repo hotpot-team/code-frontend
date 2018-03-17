@@ -63,7 +63,6 @@
                 <Page :total="totalNum" :page-size="pageSize" :current="currentPage" @on-change="changePage" show-total placement="top"></Page>
             </div>
         </div>
-
         <Modal v-model="addModal" title="新增项目" width="800">
             <Steps :current="stepCurrent">
                 <Step title="步骤1"></Step>
@@ -133,9 +132,12 @@
                                     {{check.cname}}
                                 </Radio>
                             </RadioGroup>
-
-
                         </Form-item>
+                    </div>
+                    <div v-if="formTop.componentMap['安全组件'] === 'rescentersecurity'" style="display: inline-flex;">
+                        <Button v-if="!formTop.userName" style="margin: 8px" type="primary"  @click="modalh = true">管理员配置</Button>
+                        <Button v-else style="margin: 8px" type="primary"  disabled>管理员配置</Button>
+                        <p style="margin: 16px" v-if="formTop.userName">管理员:{{formTop.userName}}   ({{formTop.departmentName}})</p>
                     </div>
                 </Form>
             </div>
@@ -145,6 +147,11 @@
                 <Button type="primary"  @click="nextStep">{{stepCurrent != 2 ? '下一步' : '完成'}}</Button>
             </div>
         </Modal>
+        <modal
+                v-on:setback="cancel1"
+                v-on:adminConfig="adminConfigs"
+                :addPersonModal="modalh">
+        </modal>
         <Modal
                 v-model="loading" :closable="false" :mask-closable="false" class-name="vertical-center-modal loading-modal" width="110">
                 <Spin fix>
@@ -155,9 +162,11 @@
     </div>
 </template>
 <script type="text/ecmascript-6">
+    import modal from './addRole.vue';
     export default {
         data () {
             return {
+                modalh:false,//控制框
                 param : {
                     orders: [
                         {
@@ -196,7 +205,10 @@
                     description: '',
                     name: '',
                     packages: '',
-                    securityConfig: 0
+                    securityConfig: 0,
+                    userId: '',
+                    userName: '',
+                    departmentName: '',
                 },
                 ruleValidate : {
                     name: [
@@ -331,11 +343,6 @@
                             },
                             style: {
                                 marginRight: 'margin-left: 20px'
-                            },
-                            on: {
-                                click: () => {
-                                    this.genBackCo()
-                                }
                             }
                         },[
                             h('Button',{
@@ -358,7 +365,7 @@
                             [h('span',{
                                     on: {
                                         click: () => {
-                                            this.genBackCo(params.row.id)
+                                            this.genBackCo(params.row.id, params.row.name);
                                         }
                                     }
                                  },'生成后端代码并下载')]),
@@ -366,7 +373,7 @@
                                  } ,[h('span',{
                                     on: {
                                         click: () => {
-                                            this.genFrontCo(params.row.name)
+                                            this.genFrontCo(params.row.id, params.row.name);
                                         }
                                     }
                                 },'生成前端代码并下载')])]),
@@ -381,34 +388,57 @@
             this.getTableData(1);
             this.getComponents();
         },
+        components:{
+            modal
+        },
         methods: {
             //生成后端代码
-            genBackCo (prjId) {
-                this.axios({
+            genBackCo (prjId, name) {
+                this.$http({
                     method: 'get',
                     url: '/codegen/api/v1/projects/'+ prjId +'/generate/code',
                     data: '',
                     showLoading : true
                 }).then((response) => {
-                    //console.log(response)
                     if (response.status === 200) {
-                        var a = document.createElement('a');
-                        var url = global.host + response.data.msgData;
-                        var filename = 'myfile.zip';
-                        a.href = url;
-                        a.download = filename;
-                        a.click();
+                        let url = global.host + response.data.msgData;
+                        let fileName = name + '.zip';
+                        this.download(url, fileName);
                     } else {
                         this.$Message.error('代码生成失败')
                     }
                 });
             },
             //生成前端代码
-            genFrontCo (prjId) {
-                var a = document.createElement('a');
-                var url = global.host +  '/codegen/api/v1/projects/'+prjId+'/downloadUI';
-                a.href = url;
-                a.click();
+            genFrontCo (prjId, name) {
+                let url = global.host +  '/codegen/api/v1/projects/'+prjId+'/downloadUI';
+                let fileName = name + '-ui.zip';
+                this.download(url, fileName);
+            },
+            download(url, fileName){
+                let xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.setRequestHeader('AUTH_TOKEN', this.$store.getters.loginInfo.authToken);
+                xhr.setRequestHeader('CURRENT_USER', this.$store.getters.loginInfo.loginId);
+                xhr.responseType = "blob";
+                xhr.onload = function () {
+                    if (this.status === 200) {
+                        let blob = this.response;
+                        let reader = new FileReader();
+                        reader.readAsDataURL(blob);    // 转换为base64，可以直接放入a表情href
+                        reader.onload = function (e) {
+                            // 转换完成，创建一个a标签用于下载
+                            let body = document.body;
+                            let a = document.createElement('a');
+                            a.download = fileName;
+                            a.href = e.target.result;
+                            body.appendChild(a);
+                            a.click();
+                            body.removeChild(a);
+                        }
+                    }
+                }
+                xhr.send();
             },
             getComponents() {
                 this.$http.get('/codegen/api/v1/projects/components/default').then((response)=>{
@@ -445,7 +475,6 @@
             updatePro: function(index) {
                 this.stepCurrent = 0;
                 this.$http.get('/codegen/api/v1/projects/'+this.tableData1[index].id + '/show').then((response) => {
-//                    console.log(response);
                     this.formTop.datasources = response.data.project.datasources;
                     this.formTop.name = response.data.project.name;
                     this.formTop.packages = response.data.project.packages;
@@ -453,6 +482,9 @@
                     this.formTop.securityConfig = response.data.project.securityConfig;
                     this.formTop.components = response.data.project.components;
                     this.formTop.id = response.data.project.id;
+                    this.formTop.userId = response.data.project.userId;
+                    this.formTop.userName = response.data.project.userName;
+                    this.formTop.departmentName = response.data.project.departmentName;
                     this.formTop.componentMap = Object.assign({}, this.formTop.componentsMap, response.data.project.componentsMap);
                 });
                 this.addModal = true;
@@ -512,6 +544,9 @@
                 this.$refs['form3'].resetFields();
                 this.formTop.description = '';
                 this.formTop.id = '';
+                this.formTop.userId = '';
+                this.formTop.userName = '';
+                this.formTop.departmentName = '';
                 this.formTop.datasources = [];
                 this.stepCurrent = 0;
                 this.addModal = false;
@@ -528,17 +563,32 @@
                     this.addModal = false;
                     let components = '';
                     for (let key in this.formTop.componentMap) {
-                        components += this.formTop.componentMap[key].toString() + ',';
+                        if (this.formTop.componentMap[key] != null) {
+                            components += this.formTop.componentMap[key].toString() + ',';
+                        }
                     }
                     components = components.substr(0, components.length - 1);
                     this.formTop.components = components;
                     //添加
-                    this.axios({
+                    this.$http({
                         method: 'post',
                         url: '/codegen/api/v1/project/save',
                         data: this.formTop,
                         showLoading : true
                     }).then((response) => {
+                        this.formTop = {
+                            id : '',
+                            components: '',
+                            datasources: [],
+                            componentMap: {},
+                            description: '',
+                            name: '',
+                            packages: '',
+                            securityConfig: 0,
+                            userId: '',
+                            userName: '',
+                            departmentName: '',
+                        };
                         this.getTableData(1);
                     });
                 } else {
@@ -552,6 +602,15 @@
                         this.stepCurrent += 1;
                     }
                 }
+            },
+            cancel1(){
+                this.modalh= false;
+            },
+            adminConfigs(data){
+                this.formTop.userId = data.adminId;
+                this.formTop.userName = data.adminName;
+                this.formTop.departmentName = data.adminDepart;
+                this.modalh= false;
             },
             // 添加数据库信息
             addDbInfo () {

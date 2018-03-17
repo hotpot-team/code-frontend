@@ -670,7 +670,7 @@
             cmtTabEdit () {
                 var _this = this
                 if (this.rightForm.id !=''){
-                    this.axios({
+                    this.$http({
                         method: 'put',
                         url: '/codegen/api/v1/tables/' + this.rightForm.id + '/save',
                         data: this.rightForm.comments,
@@ -704,7 +704,7 @@
                     alert('请选择未激活crud api的表项')
                 }
                 //console.log(tabIds)
-                this.axios({
+                this.$http({
                     method: 'put',
                     url: '/codegen/api/v1/tables/autocrud/change/active',
                     data: tabIds,
@@ -734,7 +734,7 @@
                 } else {
                     alert('请选择已激活crud api的表项')
                 }
-                this.axios({
+                this.$http({
                     method: 'put',
                     url: '/codegen/api/v1/tables/autocrud/change/inactive',
                     data: tabIds,
@@ -746,7 +746,7 @@
             },
             //同步数据库
             syncDB: function () {
-                this.axios({
+                this.$http({
                     method: 'get',
                     url: '/codegen/api/v1/datasources/' + this.displayData.id + '/tables/sync',
                     data: '',
@@ -815,19 +815,39 @@
                 });
             },
             getCode (data) {
-                this.axios({
+                this.$http({
                     method: 'get',
                     url: '/codegen/api/v1/tables/' + data.id + '/generate/code',
                     data: '',
                     showLoading : true
                 }).then((response) => {
-                    console.log(response)
-                    if (response.data.statusCode === '200') {
-                        let id = data.id
-                        var a = document.createElement('a');
-                        var url = global.host + '/codegen/api/v1/tables/download?tableId=' + id;
-                        a.href = url;
-                        a.click();
+                    if (response.data.statusCode === '0') {
+                        let id = data.id;
+                        let url = global.host + response.data.msgData;
+                        let xhr = new XMLHttpRequest();
+                        xhr.open('GET', url, true);
+                        xhr.setRequestHeader('AUTH_TOKEN', this.$store.getters.loginInfo.authToken);
+                        xhr.setRequestHeader('CURRENT_USER', this.$store.getters.loginInfo.loginId);
+                        xhr.responseType = "blob";
+                        xhr.onload = function () {
+                            if (this.status === 200) {
+                                let blob = this.response;
+                                let reader = new FileReader();
+                                reader.readAsDataURL(blob);    // 转换为base64，可以直接放入a表情href
+                                reader.onload = function (e) {
+                                    // 转换完成，创建一个a标签用于下载
+                                    let body = document.body;
+                                    let a = document.createElement('a');
+                                    a.download = data.name + '.zip';
+                                    a.href = e.target.result;
+                                    body.appendChild(a);
+                                    a.click();
+                                    body.removeChild(a);
+                                }
+                            }
+                        };
+                        xhr.send();
+
                     } else {
                         this.$Message.error('代码生成失败')
                     }

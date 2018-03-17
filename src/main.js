@@ -1,21 +1,26 @@
 import Vue from 'vue';
 import iView from 'iview';
 import VueRouter from 'vue-router';
-import VueAxios from 'vue-axios';
-import axios from 'axios';
 import Routers from './router';
 
 import Util from './libs/util';
 import App from './app.vue';
 import 'iview/dist/styles/iview.css';
-import stores from './store/store.js';
+import stores from './store';
+
+import { Tree } from 'element-ui';
 
 import VueTable from './template/vueTable.vue';
 import TextEdit from './template/textEdit.vue';
+import loginInit from './login';
+import Base64 from './base64';
 
 Vue.use(VueRouter);
 Vue.use(iView);
-Vue.use(VueAxios, axios);
+Vue.use(Tree);
+
+Vue.prototype.base64 = new Base64();
+Vue.prototype.$http = Util.ajax;
 
 Vue.component('vue-table', VueTable);
 Vue.component('text-edit', TextEdit);
@@ -37,34 +42,34 @@ router.afterEach(() => {
     iView.LoadingBar.finish();
     window.scrollTo(0, 0);
 });
-this.$http = axios;
-//请求前
-axios.interceptors.request.use(function(config){
-    config.url = Util.ajaxUrl + config.url;
-    if (config.showLoading) {
-        config.timeout = 20000;
-        stores.dispatch('showloader');
-    }
-    return config;
-},function(err){
-    stores.dispatch('hideloader');
-    return Promise.reject(err);
-});
-//请求后
-axios.interceptors.response.use(function(response){
-    if (stores.getters.showLoading) {
-        stores.dispatch('hideloader');
-        //iView.Message.success('提交成功!');
-    }
-    //提示请求成功
-    return response;
-},function(err){
-    if (stores.getters.showLoading) {
-        stores.dispatch('hideloader');
-        iView.Message.error('请求失败!');
-    }
-    return Promise.reject(err);
-});
+
+loginInit.login(router);
+
+// //请求前
+// axios.interceptors.request.use(function(config){
+//     config.url = Util.ajaxUrl + config.url;
+//     if (config.showLoading) {
+//         config.timeout = 20000;
+//     }
+//     return config;
+// },function(err){
+//     stores.dispatch('hideloader');
+//     return Promise.reject(err);
+// });
+// //请求后
+// axios.interceptors.response.use(function(response){
+//     if (stores.getters.showLoading) {
+//         //iView.Message.success('提交成功!');
+//     }
+//     //提示请求成功
+//     return response;
+// },function(err){
+//     if (stores.getters.showLoading) {
+//         stores.dispatch('hideloader');
+//         iView.Message.error('请求失败!');
+//     }
+//     return Promise.reject(err);
+// });
 
 new Vue({
     el: '#app',

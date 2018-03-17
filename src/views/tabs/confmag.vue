@@ -376,7 +376,7 @@
                 }else{
                     codes=this.formDispaly.dictCode;
                 }
-                util.ajax.post('/demo/api/v1/table/'+tableId+'/dict_type/'+codes).then((res)=>{
+                util.ajax.post('/codegen/api/v1/table/'+tableId+'/dict_type/'+codes).then((res)=>{
                     this.valuedata=res.data.dictValues;
                 }).catch((error)=>{
                 });
@@ -407,7 +407,7 @@
                     dictName=this.dictList[i].name;
                     dictId=this.dictList[i].id;
                 }
-                util.ajax.post('/demo/api/v1/table/'+tableId+'/dict_type/'+dictCode+'/dict_values',{
+                util.ajax.post('/codegen/api/v1/table/'+tableId+'/dict_type/'+dictCode+'/dict_values',{
                     "dictType": {
                         "code": dictCode,
                         "id": dictId,
@@ -429,7 +429,8 @@
                     name:''
                 };
                 this.dictList = [];
-                util.ajax.get('/demo/api/v1/table/'+tableId+'/dict_type').then((res)=>{
+                util.ajax.get('/codegen/api/v1/table/'+tableId+'/dict_type').then((res)=>{
+                    console.log(res);
                     this.dictList=res.data.dictTypes;
                     this.dictList.unshift(obj);
                     this.keys1=-this.keys1;
@@ -583,7 +584,7 @@
                                     });
                                 }
                                 else{
-                                    this.axios({
+                                    this.$http({
                                         method: 'post',
                                         url: '/codegen/api/v1/column/save',
                                         data: commitData,

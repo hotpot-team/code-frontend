@@ -725,7 +725,7 @@
                         }else{
                             message=updeteMessage
                         }
-                        this.axios({
+                        this.$http({
                             method: 'post',
                             url: '/codegen/api/v1/apibase/save',
                             data: message,
@@ -736,15 +736,9 @@
                                 if(this.apiBases.length>0){
                                     this.disabledAddApi=false;
                                 }
-                                this.$Notice.success({
-                                    title: '操作成功',
-                                    desc: response.data.message,
-                                })
+                                this.$Message.success('保存成功')
                         }else{
-                                this.$Notice.error({
-                                    title: '操作失败',
-                                    desc: response.data.message+' 请重新操作',
-                                })
+                                this.$Message.error('保存失败')
                             }
                          });
                     }
@@ -800,7 +794,7 @@
                 }else{
                     message=updateMessage
                 }
-                this.axios({
+                this.$http({
                     method: 'post',
                     url: '/codegen/api/v1/apiobj/save',
                     data: message,
@@ -811,15 +805,9 @@
                             this.disabledAddApi=false;
                         }
                         this.getApiBases(this.apiBaseId);
-                        this.$Notice.success({
-                            title: '操作成功',
-                            desc: response.data.message,
-                        })
+                        this.$Message.success('保存成功')
                     }else{
-                        this.$Notice.error({
-                            title: '操作失败',
-                            desc: response.data.message+' 请重新操作',
-                        })
+                        this.$Message.error('保存失败')
                     }
                 });
             },
@@ -828,17 +816,10 @@
                 var api = '/codegen/api/v1/apibase/'+this.apiBaseId+'/delete';
                 this.$http.delete(api).then((response) => {
                     if(response.data.statusCode == '200'){
-                    this.$Notice.success({
-                        title: '删除成功',
-                        desc: response.data.message,
-                    });
-                    this.getEntityData(this.getData());
-                }else{
-                    this.$Notice.error({
-                        title: '删除失败',
-                        desc: response.data.message+' 请重新操作',
-                    })
-                }
+                        this.$Message.success('删除成功')
+                    }else{
+                        this.$Message.error('删除失败')
+                    }
             });
             },
             //删除apiObj
@@ -846,17 +827,10 @@
                 var api = '/codegen/api/v1/apiobj/'+this.apiobjId+'/delete';
                 this.$http.delete(api).then((response) => {
                     if(response.data.statusCode == '200'){
-                    this.$Notice.success({
-                        title: '删除成功',
-                        desc: response.data.message,
-                    });
-                    this.getApiBases(this.apiBaseId);
-                }else{
-                    this.$Notice.error({
-                        title: '删除失败',
-                        desc: response.data.message+' 请重新操作',
-                    })
-                }
+                        this.$Message.success('删除成功')
+                    }else{
+                        this.$Message.error('删除失败')
+                    }
             });
             },
             //点击版本名及basePath和api的删除按钮时弹出对应的对话框

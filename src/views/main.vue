@@ -79,10 +79,18 @@
     <div class="layout">
         <div class="layout-ceiling">
             <div class="layout-ceiling-main">
-                <a href="#">注册登录</a> |
                 <a href="#">帮助中心</a> |
                 <a href="#">安全中心</a> |
-                <a href="#">服务大厅</a>
+                <a href="#">服务大厅</a> |
+                <Dropdown @on-click="loginOut" placement="bottom-end">
+                    <a href="javascript:void(0)">
+                        {{loginInfo.username}}
+                        <Icon type="arrow-down-b"></Icon>
+                    </a>
+                    <DropdownMenu slot="list">
+                        <DropdownItem>注销</DropdownItem>
+                    </DropdownMenu>
+                </Dropdown>
             </div>
         </div>
         <div class="layout-content">
@@ -103,7 +111,7 @@
 </template>
 <script>
     import Loading from '../template/loading.vue'
-    import {mapGetters} from 'vuex'
+    import { mapState, mapMutations, mapGetters } from 'vuex';
     import PojMag from './tabs/pojmag.vue'
     import DataMag from './tabs/datamag.vue'
     import ApiMag from './tabs/apimag.vue'
@@ -116,8 +124,10 @@
                 showX: 0,
                 acTab : 'pojMag',
                 tabList : [],
-                someData: ''
+                someData: '',
             }
+        },
+        created: function () {
         },
         components : {
             'poj-mag' : PojMag,
@@ -127,9 +137,14 @@
             'enti-mag' : EntiMag,
             'Loading' : Loading
         },
-        computed: mapGetters(
-            ['showLoading']
-        ),
+        computed: ({
+            ...mapState({
+                loginInfo: ({ mutations }) => mutations.loginInfo
+            }),
+            ...mapGetters([
+                'showLoading'
+            ])
+        }),
         watch: {
             acTab: function (val, olval) {
                 for (var i = 0; i < this.tabList.length; i++) {
@@ -153,6 +168,14 @@
             }
         },
         methods: {
+            ...mapMutations({
+                changeLoginInfo: 'CHANGELOGININFO'
+            }),
+            loginOut() {
+                this.changeLoginInfo({ authToken: '', username: '', loginId: '' });
+                window.localStorage.removeItem('loginInfo');
+                window.location.href = "/";
+            },
             handleTabRemove (tabId) {
                 for (var i = 0; i < this.tabList.length; i++) {
                     if (this.tabList[i].id == tabId) {

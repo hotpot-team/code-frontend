@@ -691,7 +691,7 @@
                 }
                 if (isDtoHere) {
                     this.isDto = true
-                    this.axios({
+                    this.$http({
                         method: 'get',
                         url: '/codegen/api/v1/transferobj/'+ entity +'/show',
                         data: '',
@@ -709,7 +709,7 @@
                     });
                 } else {
                     this.isDto = false
-                    this.axios({
+                    this.$http({
                         method: 'get',
                         url: '/codegen/api/v1/tables/'+ entity +'/dto',
                         data: '',
@@ -787,7 +787,7 @@
                 } else {
                     this.$refs['rightvalid'].validate((valid) => {
                         if (valid) {
-                            this.axios({
+                            this.$http({
                                 method: 'post',
                                 url: '/codegen/api/v1/transferobjfield/save',
                                 data: editProp,
@@ -810,7 +810,7 @@
                 if (propId === "") {
                     this.$Message.error('请选择属性')
                 } else {
-                    this.axios({
+                    this.$http({
                         method: 'delete',
                         url: '/codegen/api/v1/transferObjField/' + propId + '/Delete',
                         data: '',
@@ -858,7 +858,7 @@
                             isGeneric: this.centerForm.isGeneric,
                             isSenior : this.centerForm.isSenior,
                         };
-                        this.axios({
+                        this.$http({
                             method: 'post',
                             url: '/codegen/api/v1/transferobj/save',
                             data: cmtEdit,
