@@ -43,7 +43,8 @@ router.afterEach(() => {
     window.scrollTo(0, 0);
 });
 
-loginInit.login(router);
+// 登录
+// loginInit.login(router);
 
 // //请求前
 // axios.interceptors.request.use(function(config){

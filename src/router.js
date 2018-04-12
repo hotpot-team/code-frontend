@@ -1,4 +1,3 @@
-import Index from './views/index.vue'
 import Main from './views/main.vue'
 
 const routers = [{
@@ -6,7 +5,7 @@ const routers = [{
     meta: {
         title: '代码生成器'
     },
-    component: Index
+    component: Main
 },{
     path: '/main',
     meta: {
