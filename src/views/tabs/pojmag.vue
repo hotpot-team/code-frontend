@@ -134,11 +134,6 @@
                             </RadioGroup>
                         </Form-item>
                     </div>
-                    <div v-if="formTop.componentMap['安全组件'] === 'rescentersecurity'" style="display: inline-flex;">
-                        <Button v-if="!formTop.userName" style="margin: 8px" type="primary"  @click="modalh = true">管理员配置</Button>
-                        <Button v-else style="margin: 8px" type="primary"  disabled>管理员配置</Button>
-                        <p style="margin: 16px" v-if="formTop.userName">管理员:{{formTop.userName}}   ({{formTop.departmentName}})</p>
-                    </div>
                 </Form>
             </div>
             <div slot="footer">
@@ -147,11 +142,6 @@
                 <Button type="primary"  @click="nextStep">{{stepCurrent != 2 ? '下一步' : '完成'}}</Button>
             </div>
         </Modal>
-        <modal
-                v-on:setback="cancel1"
-                v-on:adminConfig="adminConfigs"
-                :addPersonModal="modalh">
-        </modal>
         <Modal
                 v-model="loading" :closable="false" :mask-closable="false" class-name="vertical-center-modal loading-modal" width="110">
                 <Spin fix>
@@ -162,11 +152,9 @@
     </div>
 </template>
 <script type="text/ecmascript-6">
-    import modal from './addRole.vue';
     export default {
         data () {
             return {
-                modalh:false,//控制框
                 param : {
                     orders: [
                         {
@@ -268,31 +256,27 @@
                 tableColumns1: [
                     {
                         title: '项目名',
-                        key:'name',
-                        width:"12%"
+                        key:'name'
                     },
                     {
                         title: '标题',
-                        key:'description',
-                        width:"12%"
+                        key:'description'
                     },
                     {
                         title: '包路径',
-                        key: 'packages',
-                        width:"16%"
+                        key: 'packages'
                     },
                     {
                         title: '创建时间',
-                        key: 'createdAt',
-                        width:"16%"
+                        key: 'createdAt'
                     },
                     {
                         title: '更新时间',
-                        key: 'updatedAt',
-                        width:"16%"
+                        key: 'updatedAt'
                     },
                     {
                         title: '操作',
+                        width: 400,
                         render: (h, params) => {
                             return h('div', {
                                 class: 'mag-buttons'
@@ -387,9 +371,6 @@
         created: function () {
             this.getTableData(1);
             this.getComponents();
-        },
-        components:{
-            modal
         },
         methods: {
             //生成后端代码
@@ -496,19 +477,24 @@
             },
             addTab (data, componentType) {
                 var _this = this;
+                let label = '';
+                switch (componentType) {
+                    case 'data-mag' :
+                        label =  _this.tableData1[data.index].name + '_项目数据库';
+                        break;
+                    case 'enti-mag' :
+                        label =    _this.tableData1[data.index].name + '_实体配置';
+                        break;
+                    case 'api-mag' :
+                        label =    _this.tableData1[data.index].name + '_Api';
+                        break;
+                    case 'view-mag' :
+                        label =    _this.tableData1[data.index].name + '_页面配置';
+                        break;
+                    default: break;
+                }
                 this.$emit('child-addTab', {
-                    label : function(){
-                        switch (componentType) {
-                            case 'data-mag' :
-                                return  _this.tableData1[data.index].name + '_项目数据库';
-                            case 'enti-mag' :
-                                return  _this.tableData1[data.index].name + '_实体配置';
-                            case 'api-mag' :
-                                return  _this.tableData1[data.index].name + '_Api';
-                            case 'view-mag' :
-                                return  _this.tableData1[data.index].name + '_页面配置';
-                        }
-                    },
+                    label : label,
                     id : componentType + data.index,
                     componentType : componentType,
                     someData: function(){
@@ -603,15 +589,6 @@
                     }
                 }
             },
-            cancel1(){
-                this.modalh= false;
-            },
-            adminConfigs(data){
-                this.formTop.userId = data.adminId;
-                this.formTop.userName = data.adminName;
-                this.formTop.departmentName = data.adminDepart;
-                this.modalh= false;
-            },
             // 添加数据库信息
             addDbInfo () {
                 this.$refs['addform'].validate((valid) => {
@@ -633,7 +610,11 @@
                                     dbpassword : this.formDb.dbpassword
                                 });
                                 this.$refs['addform'].resetFields();
+                            } else if (response.data.statusCode == '300') {
+                                this.$Message.warning(response.data.message);
                             }
+                        }).catch((e)=>{
+                            this.$Message.error('数据库添加失败！');
                         });
                     }
                 });

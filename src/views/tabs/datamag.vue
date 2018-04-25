@@ -132,28 +132,6 @@
 <template>
     <div class="tab-content" id="datamag" style="overflow: hidden;position: relative">
         <Row>
-            <!--<Col span="4" class="tab-content-col" style="padding-right: 8px">-->
-                <!--<div class="tab-content-block">-->
-                    <!--<div class="search-menu">-->
-                        <!--<Input v-model="searchMenu" icon="search" placeholder="请输入..."></Input>-->
-                    <!--</div>-->
-                    <!--<div style="position: absolute;left: 16px;bottom: 16px;top: 60px;">-->
-                        <!--<Menu ref="dbList" theme="light" :active-name="activeName" @on-select="menuSelected">-->
-                            <!--<Menu-item v-show="searchMenu == '' || item.name.indexOf(searchMenu) > -1" v-for="(item, index) in menus" :key="item.id" :name="item.id">-->
-                                <!--<div class="entity-row"  @click="editEn(index)">-->
-                                    <!--<Row>-->
-                                        <!--<Col span="8">-->
-                                        <!--<div>-->
-                                            <!--{{item.name}}-->
-                                        <!--</div>-->
-                                        <!--</Col>-->
-                                    <!--</Row>-->
-                                <!--</div>-->
-                            <!--</Menu-item>-->
-                        <!--</Menu>-->
-                    <!--</div>-->
-                <!--</div>-->
-            <!--</Col>-->
             <Col span="15"  class="tab-content-col" style="padding-right: 16px;">
                 <div class="tab-content-block">
                     <Card :bordered="false" style="background: #f5f7f9" dis-hover>
@@ -358,7 +336,7 @@
                     {
                         title: '关联字段',
                         render: (h, param)=>{
-                            return this.rightForm.name + '.' + param.row.masterColumnName + ' = ' + param.row.slaveTableName + '.' + param.row.slaveColumnName;
+                            return h('span', {}, this.rightForm.name + '.' + param.row.masterColumnName + ' = ' + param.row.slaveTableName + '.' + param.row.slaveColumnName);
                         }
                     },
                     {
@@ -400,12 +378,12 @@
                     },
                     {
                         title: 'CRUD API',
-                        key: 'isAutoCrud',
                         render: (h, params) => {
-                            if (params.row.isAutoCrud == 0) {
-                                return '否';
-                            } else
-                                return '是';
+                            if (params.row.isAutoCrud == '0') {
+                                return h('span',{},'否');
+                            } else {
+                                return h('span',{},'是');
+                            }
                         }
                     },
                     {
@@ -421,6 +399,7 @@
                                     },
                                     on: {
                                         click: () => {
+                                            console.log(params);
                                             this.addTab(params, 'conf-mag')
                                         }
                                     }
@@ -561,12 +540,11 @@
                         }
                     ]
                 };
-                if (this.masterColumns == null || this.masterColumns.length == 0) {
-                    this.$http.get('/codegen/api/v1/tables/'+this.rightForm.id+'/columns').then((response)=>{
-                        this.masterColumns = response.data.columns;
-                    });
-                }
-                this.seniorModel = true;
+                this.masterColumns = [];
+                this.$http.get('/codegen/api/v1/tables/'+this.rightForm.id+'/columns').then((response)=>{
+                    this.masterColumns = response.data.columns;
+                    this.seniorModel = true;
+                });
             },
             //删除关联关系
             delRelation(id, index){
@@ -655,12 +633,12 @@
             clickRow (row) {
                 this.rightForm = {
                     id: row.id,
-                    name: row.name,
                     isAutoCrud : row.isAutoCrud,
                     comments: {
                         comments: row.comments
                     }
-                }
+                };
+                this.$set(this.rightForm, "name", row.name);
                 if (row.isAutoCrud == 1) {
                     this.getTableRelations(row.id);
                     this.getTableSeniorRelations(row.id);
@@ -792,14 +770,16 @@
             addTab (data, componentType) {
                 var _this = this;
                 this.$emit('child-addTab', {
-                    label : function(){
-                        switch (componentType) {
-                            case 'conf-mag' :
-                                return  _this.displayData.dbData[data.index].name + '_项目表配置';
-                            case 'api-mag' :
-                                return  _this.displayData.dbData[data.index].name + '_Api';
-                        }
-                    },
+                    label : componentType==='conf-mag'?_this.displayData.dbData[data.index].name + '_项目表配置':_this.displayData.dbData[data.index].name + '_Api',
+//                        function(){
+//                        debugger
+//                        switch (componentType) {
+//                            case 'conf-mag' :
+//                                return  _this.displayData.dbData[data.index].name + '_项目表配置';
+//                            case 'api-mag' :
+//                                return  _this.displayData.dbData[data.index].name + '_Api';
+//                        }
+//                    },
                     id : componentType + data.index,
                     componentType : componentType,
                     someData: function(){

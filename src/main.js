@@ -12,7 +12,7 @@ import { Tree } from 'element-ui';
 
 import VueTable from './template/vueTable.vue';
 import TextEdit from './template/textEdit.vue';
-import loginInit from './login';
+// import loginInit from './login';
 import Base64 from './base64';
 
 Vue.use(VueRouter);
@@ -43,7 +43,6 @@ router.afterEach(() => {
     window.scrollTo(0, 0);
 });
 
-// 登录
 // loginInit.login(router);
 
 // //请求前
