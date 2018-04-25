@@ -75,7 +75,7 @@
                         <i-input v-model="formTop.name" placeholder="demo"></i-input>
                     </Form-item>
                     <Form-item label="项目包名" prop="packages">
-                        <i-input v-model="formTop.packages" placeholder="com.changan.demo"></i-input>
+                        <i-input v-model="formTop.packages" placeholder="com.hotpot.demo"></i-input>
                     </Form-item>
                     <Form-item label="标题">
                         <i-input v-model="formTop.description" placeholder="请输入标题"></i-input>

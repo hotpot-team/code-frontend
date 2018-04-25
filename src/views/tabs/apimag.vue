@@ -287,7 +287,7 @@
                     <Input v-model="modelClass.versionName" placeholder="v1" ></Input>
                 </Form-item>
                 <Form-item label="basePath" prop="basePath">
-                    <Input v-model="modelClass.basePath" placeholder="/cmp/changan"></Input>
+                    <Input v-model="modelClass.basePath" placeholder="/hotpot"></Input>
                 </Form-item>
             </Form>
         </Modal>

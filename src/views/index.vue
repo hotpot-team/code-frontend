@@ -68,8 +68,6 @@
             </div>
         </div>
         <div class="login-bottom">
-            <img src="./images/changan.png"/>
-            <img src="./images/tianotp.png"/>
         </div>
     </div>
 </template>
