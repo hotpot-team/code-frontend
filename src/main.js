@@ -12,7 +12,7 @@ import { Tree } from 'element-ui';
 
 import VueTable from './template/vueTable.vue';
 import TextEdit from './template/textEdit.vue';
-import loginInit from './login';
+// import loginInit from './login';
 import Base64 from './base64';
 
 Vue.use(VueRouter);
@@ -43,7 +43,7 @@ router.afterEach(() => {
     window.scrollTo(0, 0);
 });
 
-loginInit.login(router);
+// loginInit.login(router);
 
 // //请求前
 // axios.interceptors.request.use(function(config){

@@ -327,9 +327,9 @@
                         key: 'isNullable',
                         render: (h, params) => {
                             if (params.row.isNullable === '0') {
-                                return '否'
+                                return h('span','否');
                             } else if (params.row.isNullable === '1') {
-                                return '是'
+                                return h('span','是');
                             }
                         }
                     },
@@ -338,9 +338,9 @@
                         key: 'readOnly',
                         render: (h, params) => {
                             if (params.row.readOnly === '0') {
-                                return '否'
+                                return h('span','否');
                             } else if (params.row.readOnly === '1') {
-                                return '是'
+                                return h('span','是');
                             }
                         }
                     }

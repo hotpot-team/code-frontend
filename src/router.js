@@ -6,7 +6,7 @@ const routers = [{
     meta: {
         title: '代码生成器'
     },
-    component: Index
+    component: Main
 },{
     path: '/main',
     meta: {
