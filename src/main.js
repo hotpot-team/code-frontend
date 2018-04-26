@@ -20,6 +20,34 @@ Vue.use(iView);
 Vue.use(Tree);
 
 Vue.prototype.base64 = new Base64();
+Util.ajax.interceptors.request.use(function (config) {
+    // 在发送请求之前做些什么
+    if (config.showLoading) {
+        config.timeout = 20000;
+        stores.commit('SHOWLOADING');
+    }
+    return config;
+}, function (error) {
+    // 对请求错误做些什么
+    if (stores.getters.showLoading) {
+        stores.commit('HIDELOADING');
+    }
+    return Promise.reject(error);
+});
+// 添加响应拦截器
+Util.ajax.interceptors.response.use(function (response) {
+    // 对响应数据做点什么
+    if (stores.getters.showLoading) {
+        stores.commit('HIDELOADING');
+    }
+    return response;
+}, function (error) {
+    // 对响应错误做点什么
+    if (stores.getters.showLoading) {
+        stores.commit('HIDELOADING');
+    }
+    return Promise.reject(error);
+});
 Vue.prototype.$http = Util.ajax;
 
 Vue.component('vue-table', VueTable);
@@ -45,27 +73,28 @@ router.afterEach(() => {
 
 // loginInit.login(router);
 
-// //请求前
-// axios.interceptors.request.use(function(config){
+//请求前
+// Util.ajax.interceptors.request.use(function(config){
 //     config.url = Util.ajaxUrl + config.url;
 //     if (config.showLoading) {
 //         config.timeout = 20000;
+//         stores.commit('SHOWLOADING');
 //     }
 //     return config;
 // },function(err){
-//     stores.dispatch('hideloader');
+//     stores.commit('HIDELOADING');
 //     return Promise.reject(err);
 // });
 // //请求后
-// axios.interceptors.response.use(function(response){
+// Util.ajax.interceptors.response.use(function(response){
 //     if (stores.getters.showLoading) {
-//         //iView.Message.success('提交成功!');
+//         stores.commit('HIDELOADING');
 //     }
 //     //提示请求成功
 //     return response;
 // },function(err){
 //     if (stores.getters.showLoading) {
-//         stores.dispatch('hideloader');
+//         stores.commit('HIDELOADING');
 //         iView.Message.error('请求失败!');
 //     }
 //     return Promise.reject(err);
