@@ -1,0 +1,19 @@
+sudo: required
+language: node_js
+
+node_js:
+  - 4.4.4
+ 
+install:
+  - npm install
+
+services:
+  - docker
+
+script:
+  - npm run build
+  
+after_success:
+  - docker login -u $DOCKER_USER -p $DOCKER_PASS
+  - docker build -t $DOCKER_USER/hotpot-code-ui .
+  - docker push $DOCKER_USER/hotpot-code-ui

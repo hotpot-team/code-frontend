@@ -9,3 +9,4 @@ src/config/*.tmp
 src/config/env.js
 npm-debug.log
 package-lock.json
+prod
